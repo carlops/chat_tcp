@@ -17,7 +17,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include "extras.h"
+//#include "extras.h"
 
 int main(int argc, char *argv[]) {
 
@@ -42,20 +42,21 @@ int main(int argc, char *argv[]) {
     s = connect(sockfd, PSOCK_ADDR &server_addr, sizeof(server_addr));
     if (s != 0)  perror("conect");
 
-    while (fgets(sendline, 10000,stdin) != NULL)
+    while (1) // (fgets(sendline, 10000,stdin) != NULL)
     {
-        s = send(sockfd, sendline, strlen(sendline), 0);
-        if (s==-1)  perror("sending");
-        
-        //sendto(sockfd, sendline, strlen(sendline), 0,
-        //    PSOCK_ADDR &servaddr, sizeof(servaddr));
-        
         s = recv(sockfd, recvline, strlen(recvline), 0);
-        if (s==-1) Herror("receiving");
+        if (s==-1) perror("receiving");
         
         //n=recvfrom(sockfd,recvline,10000,0,NULL,NULL);
         recvline[s]='\0';
         fputs(recvline,stdout);
+        
+        
+        //sendto(sockfd, sendline, strlen(sendline), 0,
+        //    PSOCK_ADDR &servaddr, sizeof(servaddr));
+        fgets(sendline, 100,stdin);
+        s = send(sockfd, sendline, strlen(sendline), 0);
+        if (s==-1)  perror("sending");
     }
     //if (bind(sockfd,(struct sockaddr *) &my_addr,
 	//		sizeof(struct sockaddr_in))==-1)
