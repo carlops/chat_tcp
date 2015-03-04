@@ -21,15 +21,17 @@
 
 int main(int argc, char *argv[]) {
 
-	struct sockaddr_in my_addr, server_addr; 
-	int sockfd,s;
+	char *host = obtener_parametros("-d",argv,argc);
+	char *puerto = obtener_parametros("-p",argv,argc);
+	//char *puerto_local = obtener_parametros("-l",argv,argc);
+
+	if ((argc%2!=1)||(argc>7)||!host||!puerto)
+		fatalerror("Parametros invalidos");
+
+    struct sockaddr_in my_addr, server_addr; 
+    int sockfd,s;
     char sendline[1000],recvline[1000];
 	
-    if (argc !=2){
-        printf("usage: cliente <SERVER IP ADDRESS>\n");
-        exit(-1);
-    }
-
     sockfd=socket(AF_INET,SOCK_STREAM,0);
 
     if (sockfd== -1) perror("socket(init)");
