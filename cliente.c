@@ -1,8 +1,12 @@
 /* 
  * CLIENTE
- * por ahora el 1er arg es host
- * 	el 2do es el servidor
+ * 
+ * compilar con: (-g es opcional para debuggear)
+ * gcc -g -o scs_cli cliente.c extras.c
  *
+ * Se corre asi:
+ * scs_cli -d <IP-servidor> -p <puerto-servidor> [-l <puerto_local>]
+ * con lo que va en [] opcional.
  */
 //#include <string.h>
 //#include <unistd.h>
@@ -26,7 +30,7 @@ int main(int argc, char *argv[]) {
 	//char *puerto_local = obtener_parametros("-l",argv,argc);
 
 	if ((argc%2!=1)||(argc>7)||!host||!puerto)
-		fatalerror("Parametros invalidos");
+		perror("Parametros invalidos");
 
     struct sockaddr_in my_addr, server_addr; 
     int sockfd,s;
@@ -38,26 +42,27 @@ int main(int argc, char *argv[]) {
     
     bzero(&server_addr,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = inet_addr(argv[1]); 
-    server_addr.sin_port = htons(1672);
+	server_addr.sin_addr.s_addr = inet_addr(host); 
+    server_addr.sin_port = htons(atoi(puerto));
 	
     s = connect(sockfd, PSOCK_ADDR &server_addr, sizeof(server_addr));
     if (s != 0)  perror("conect");
 
-    while (fgets(sendline, 10000,stdin) != NULL)
+    while (1) // (fgets(sendline, 10000,stdin) != NULL)
     {
-        s = send(sockfd, sendline, strlen(sendline), 0);
-        if (s==-1)  perror("sending");
+        s = recv(sockfd, recvline, strlen(recvline), 0);
+        if (s==-1) perror("receiving");
+        
+        //n=recvfrom(sockfd,recvline,10000,0,NULL,NULL);
+        recvline[s]=0;
+        fputs(recvline,stdout);
+        
         
         //sendto(sockfd, sendline, strlen(sendline), 0,
         //    PSOCK_ADDR &servaddr, sizeof(servaddr));
-        
-        s = recv(sockfd, recvline, strlen(recvline), 0);
-        if (s==-1) Herror("receiving");
-        
-        //n=recvfrom(sockfd,recvline,10000,0,NULL,NULL);
-        recvline[s]='\0';
-        fputs(recvline,stdout);
+        fgets(sendline, 100,stdin);
+        s = send(sockfd, sendline, strlen(sendline), 0);
+        if (s==-1)  perror("sending");
     }
     //if (bind(sockfd,(struct sockaddr *) &my_addr,
 	//		sizeof(struct sockaddr_in))==-1)
