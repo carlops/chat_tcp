@@ -1,8 +1,12 @@
 /* 
  * CLIENTE
- * por ahora el 1er arg es host
- * 	el 2do es el servidor
+ * 
+ * compilar con: (-g es opcional para debuggear)
+ * gcc -g -o scs_cli cliente.c extras.c
  *
+ * Se corre asi:
+ * scs_cli -d <IP-servidor> -p <puerto-servidor> [-l <puerto_local>]
+ * con lo que va en [] opcional.
  */
 //#include <string.h>
 //#include <unistd.h>
@@ -17,7 +21,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-//#include "extras.h"
+#include "extras.h"
 
 int main(int argc, char *argv[]) {
 
@@ -26,7 +30,7 @@ int main(int argc, char *argv[]) {
 	//char *puerto_local = obtener_parametros("-l",argv,argc);
 
 	if ((argc%2!=1)||(argc>7)||!host||!puerto)
-		fatalerror("Parametros invalidos");
+		perror("Parametros invalidos");
 
     struct sockaddr_in my_addr, server_addr; 
     int sockfd,s;
@@ -38,8 +42,8 @@ int main(int argc, char *argv[]) {
     
     bzero(&server_addr,sizeof(server_addr));
 	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = inet_addr(argv[1]); 
-    server_addr.sin_port = htons(1672);
+	server_addr.sin_addr.s_addr = inet_addr(host); 
+    server_addr.sin_port = htons(atoi(puerto));
 	
     s = connect(sockfd, PSOCK_ADDR &server_addr, sizeof(server_addr));
     if (s != 0)  perror("conect");
@@ -50,7 +54,7 @@ int main(int argc, char *argv[]) {
         if (s==-1) perror("receiving");
         
         //n=recvfrom(sockfd,recvline,10000,0,NULL,NULL);
-        recvline[s]='\0';
+        recvline[s]=0;
         fputs(recvline,stdout);
         
         

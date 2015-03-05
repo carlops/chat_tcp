@@ -18,4 +18,4 @@ void Herror(char *er){
 }
 */
 
-char *obtener_parametros(char *flag,char *argv[], int argc);
+extern char *obtener_parametros(char *flag,char *argv[], int argc);
