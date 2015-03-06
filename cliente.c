@@ -8,13 +8,6 @@
  * scs_cli -d <IP-servidor> -p <puerto-servidor> [-l <puerto_local>]
  * con lo que va en [] opcional.
  */
-//#include <string.h>
-//#include <unistd.h>
-//#include <netdb.h>
-//#include <arpa/inet.h>
-//#include <sys/types.h>
-
-#define PSOCK_ADDR (struct sockaddr *)
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,144 +20,79 @@ int main(int argc, char *argv[]) {
 
 	char *host = obtener_parametros("-d",argv,argc);
 	char *puerto = obtener_parametros("-p",argv,argc);
-	//char *puerto_local = obtener_parametros("-l",argv,argc);
+	char *puerto_local = obtener_parametros("-l",argv,argc);
 
 	if ((argc%2!=1)||(argc>7)||!host||!puerto)
 		perror("Parametros invalidos");
 
-    struct sockaddr_in my_addr, server_addr; 
-    int sockfd,s;
-    char sendline[1000],recvline[1000];
-	
-    sockfd=socket(AF_INET,SOCK_STREAM,0);
+	int s;					  // El socket de conexion
+	struct sockaddr_in local; // Direccion local
+	struct sockaddr_in serv;  // Direccion del servidor
+	struct hostent *servidor; // Para gethostbyname() o gethostbyaddr()
+							  //  segun sea el caso
+	struct in_addr inaddr;	  // Utilizado cuando es suministrada el dominio
+							  //  como direccion IP
 
-    if (sockfd== -1) perror("socket(init)");
-    
-    bzero(&server_addr,sizeof(server_addr));
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = inet_addr(host); 
-    server_addr.sin_port = htons(atoi(puerto));
-	
-    s = connect(sockfd, PSOCK_ADDR &server_addr, sizeof(server_addr));
-    if (s != 0)  perror("conect");
+	/* Creacion del socket */
+	s = socket(PF_INET, SOCK_STREAM, 0);
+	/* comprobacion de errores */
+	if (s<0) {
+			perror("creando socket:");
+			exit(1);
+	}
+	/* Asignacion de direccion al socket.
+	 * En el caso del cliente el numero de puerto local,
+	 * es suministrado por en la invocacion del cliente con la bandera '-l',
+	 * este parametro es opcional. 
+	 * En caso de no sea suministrado podemos dejar que lo elija el sistema,
+	 * dandole el valor cero. 
+	 * Como direccion IP daremos INADDR_ANY 
+	 */
+	local.sin_family=AF_INET;
+	if (puerto_local)
+			local.sin_port=htons(atoi(puerto_local));
+	else
+			local.sin_port=htons(0);
+	local.sin_addr.s_addr = htonl(INADDR_ANY);
 
-    while (1) // (fgets(sendline, 10000,stdin) != NULL)
-    {
-        s = recv(sockfd, recvline, strlen(recvline), 0);
-        if (s==-1) perror("receiving");
-        
-        //n=recvfrom(sockfd,recvline,10000,0,NULL,NULL);
-        recvline[s]=0;
-        fputs(recvline,stdout);
-        
-        
-        //sendto(sockfd, sendline, strlen(sendline), 0,
-        //    PSOCK_ADDR &servaddr, sizeof(servaddr));
-        fgets(sendline, 100,stdin);
-        s = send(sockfd, sendline, strlen(sendline), 0);
-        if (s==-1)  perror("sending");
-    }
-    //if (bind(sockfd,(struct sockaddr *) &my_addr,
-	//		sizeof(struct sockaddr_in))==-1)
-	//	perror("bind");
-	
-	//connect
-	//read
-	//write
-	//close
-	
-    return 0;
+	/* En este caso no es totalmente necesario ejecutar el bind()en el cliente,
+	 * solamente es necesario cuando se es suministrado el puerto local,
+	 * ya que  si intentamos directamente hacer connect() sin haber hecho
+	 * antes bind(), el sistema nos asignara automaticamente una direccion 
+	 * local elegida por el.
+	 */
+	if (bind(s, (struct sockaddr *) &local, sizeof local)<0) {
+			perror("asignando direccion:");
+			exit(2);
+	}
+
+	/* Ahora vamos a conectar. Necesitamos la direccion IP del servidor
+	 * la cual obtenemos con una llamada a gethosbyname() o con
+	 * gethostbyaddr() segun sea el caso
+	 */
+	if (inet_aton(host,&inaddr))
+			servidor = gethostbyaddr((char *) &inaddr, sizeof(inaddr), AF_INET);
+	else
+			servidor = gethostbyname(host);
+	if (servidor==NULL) {
+			fprintf(stderr, "Nombre de Dominio o Direccion IP erronea.\n");
+			exit(2);
+	}
+	memcpy(&serv.sin_addr.s_addr, servidor->h_addr, servidor->h_length);
+	/* Llenando los ultimos campos de serv */
+	serv.sin_family = AF_INET;
+	serv.sin_port = htons(atoi(puerto));
+	/* Conectando */
+	if (connect(s, (struct sockaddr *) &serv, sizeof(serv))<0) {
+			perror("La coneccion al servidor fallo.");
+			exit(3);
+	}
+	/* Si hemos llegado hasta aqui, la conexion esta establecida */
+	if (write(s, DATOS, sizeof DATOS)<0) {
+			perror("escribiendo el socket:");
+			exit(3);
+	}
+	/* Todo bien. Podemos cerrar el socket y terminar */
+	close(s);
+	exit(0);
 }
-
-/*
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <string.h>
-
-#define BUF_SIZE 500
-
-int
-main(int argc, char *argv[])
-{
-    struct addrinfo hints;
-    struct addrinfo *result, *rp;
-    int sfd, s, j;
-    size_t len;
-    ssize_t nread;
-    char buf[BUF_SIZE];
-
-    if (argc < 3) {
-        fprintf(stderr, "Usage: %s host port msg...\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-
-    // Obtain address(es) matching host/port 
-    memset(&hints, 0, sizeof(struct addrinfo));
-    hints.ai_family = AF_UNSPEC;    // Allow IPv4 or IPv6
-    hints.ai_socktype = SOCK_DGRAM; // Datagram socket 
-    hints.ai_flags = 0;
-    hints.ai_protocol = 0;          // Any protocol
-
-    s = getaddrinfo(argv[1], argv[2], &hints, &result);
-    if (s != 0) {
-        fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(s));
-        exit(EXIT_FAILURE);
-    }
-
-    // getaddrinfo() returns a list of address structures.
-    // Try each address until we successfully connect(2).
-    // If socket(2) (or connect(2)) fails, we (close the socket
-    // and) try the next address.  
-    for (rp = result; rp != NULL; rp = rp->ai_next) {
-        sfd = socket(rp->ai_family, rp->ai_socktype,
-                     rp->ai_protocol);
-        if (sfd == -1)
-            continue;
-
-        if (connect(sfd, rp->ai_addr, rp->ai_addrlen) != -1)
-            break;                  // Success
-       close(sfd);
-    }
-
-    if (rp == NULL) {               // No address succeeded
-        fprintf(stderr, "Could not connect\n");
-        exit(EXIT_FAILURE);
-    }
-
-    freeaddrinfo(result);           // No longer needed
-
-    // Send remaining command-line arguments as separate
-    // datagrams, and read responses from server
-
-    for (j = 3; j < argc; j++) {
-        len = strlen(argv[j]) + 1;
-               // +1 for terminating null byte
-
-        if (len + 1 > BUF_SIZE) {
-            fprintf(stderr,
-                    "Ignoring long message in argument %d\n", j);
-            continue;
-        }
-
-        if (write(sfd, argv[j], len) != len) {
-            fprintf(stderr, "partial/failed write\n");
-            exit(EXIT_FAILURE);
-        }
-
-        nread = read(sfd, buf, BUF_SIZE);
-        if (nread == -1) {
-            perror("read");
-            exit(EXIT_FAILURE);
-        }
-
-        printf("Received %ld bytes: %s\n", (long) nread, buf);
-    }
-
-    exit(EXIT_SUCCESS);
-}
-*/
-
