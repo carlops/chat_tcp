@@ -40,10 +40,10 @@ struct infoUsr {
 
 };
 
-typedef struct{
-    char[50] name;
+struct lista{
+    char name[50];
     struct userdb *sig;
-}userdb;
+};
 
 int main(int argc, char *argv[]) {
     
@@ -53,7 +53,7 @@ int main(int argc, char *argv[]) {
     struct infoUsr *arg;
 	FILE *fd;
     char *tiempo;
-    
+    struct lista userdb;  
 
     char *puerto = obtener_parametros("-l",argv,argc);
 	char *bitacora = obtener_parametros("-b",argv,argc);
@@ -82,7 +82,7 @@ int main(int argc, char *argv[]) {
     printf("%sSocket abierto en el puerto %s y esperando conexion..\n",tiempo,puerto);
 
     //Aqui se inicializan las variables globales como cantidad de salas de chats,de usuarios activos, etc
-    struct userdb
+    
 
 
     //Espera por clientes
@@ -95,7 +95,7 @@ int main(int argc, char *argv[]) {
 
         if (!(arg=(struct infoUsr*) malloc(sizeof(struct infoUsr))))
             perror("asignacion memoria");
-        arg->id=NULL;
+        arg->id=0;
         arg->fd=newfd;
         //conectarse
         //login();
