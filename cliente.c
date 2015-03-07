@@ -100,7 +100,7 @@ int main(int argc, char *argv[]) {
 		local elegida por el. 
 		Pero sin importar el caso, siempre se ejecutara.
 	 */
-	if (bind(s, (struct sockaddr *) &local, sizeof local)<0) {
+	if (bind(s, (struct sockaddr *) &local, sizeof local) < 0) {
 		perror("Error creando el bind en el Cliente.\n");
 		exit(3);
 	}
@@ -108,31 +108,37 @@ int main(int argc, char *argv[]) {
 	/* Iniciando la conexion.
 		Se necesita la direccion IP del servidor y se obtiene mediante a una
 		llamada a gethosbyname() o con gethostbyaddr() segun sea el caso.
+		Se usa AF_INET para indicar la version IPv4.
+		Se copia el host en el struct del servidor.
+		Se indica el puerto por donde se escuchara al servidor.
 	 */
 	if (inet_aton(host,&inaddr))
 			servidor = gethostbyaddr((char *) &inaddr, sizeof(inaddr), AF_INET);
 	else
 			servidor = gethostbyname(host);
-	if (servidor==NULL) {
-		perror("Error obteniendo nombre de dominio o direccion.\n");
+	if (servidor == NULL) {
+		perror("Error obteniendo nombre o direccion del dominio.\n");
 		exit(4);
 	}
 	bzero(&serv,sizeof(serv));
 	serv.sin_family = AF_INET;
 	memcpy(&serv.sin_addr, servidor->h_addr_list[0], servidor->h_length);
-	/* Llenando los ultimos campos de serv */
 	serv.sin_port = htons(atoi(puerto));
-	/* Conectando */
-	if (connect(s, (struct sockaddr *) &serv, sizeof(serv))<0) {
+
+	/* Conectando con el Servidor. */
+	if (connect(s, (struct sockaddr *) &serv, sizeof(serv)) < 0) {
 			perror("Error en la conexion al servidor.\n");
 			exit(5);
 	}
-	/* Si hemos llegado hasta aqui, la conexion esta establecida */
+
+	/* Se realizo la conexion con el Servidor. */
 	//if (write(s, DATOS, sizeof DATOS)<0) {
 	//		perror("escribiendo el socket:");
 	//		exit(3);
 	//}
-	/* Todo bien. Podemos cerrar el socket y terminar */
+
+
+	/* Se termina la conexion y se cierra el socket para terminar. */
 	close(s);
 	exit(0);
 }
