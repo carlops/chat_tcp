@@ -18,6 +18,19 @@
 #include <pthread.h>
 #include "extras.h"
 #include <time.h>
+#include <getopt.h>
+
+int hash(char *string, int tam) {
+	int l;
+	int i=0;
+	int c=0;
+	l = strlen(string);
+	for (i; i<l; i++){
+		c = (char) string[i] + c;
+	};
+	return (c % tam);	
+}
+
 
 char *get_time(){
     time_t t;
@@ -54,11 +67,26 @@ int main(int argc, char *argv[]) {
 	FILE *fd;
     char *tiempo;
     struct lista userdb;  
+	int c;
+	char *puerto;
+	char *bitacora;
 
-    char *puerto = obtener_parametros("-l",argv,argc);
-	char *bitacora = obtener_parametros("-b",argv,argc);
-    if ((argc!=5)||!bitacora||!puerto)
-        {perror("Parametros invalidos"); exit(-1);}
+	while ((c = getopt(argc,argv,"l:b:")) != -1 ){
+		switch(c){
+			case 'l':
+				puerto = optarg;
+				printf("hola1\n");
+				break;
+			case 'b' :
+				bitacora = optarg;
+				printf("hola2 abriendo bitacora\n");
+				break;
+			default:
+				printf("parametro desconocido\n");
+				exit(-1);
+		}
+	}
+	
    
     fd = fopen(bitacora,"a");
     if (fd==NULL) perror("abriendo bitacora");
