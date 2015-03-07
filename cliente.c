@@ -132,6 +132,14 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Se realizo la conexion con el Servidor. */
+
+	/* Se le pide al cliente el nombre de su usuario.
+		El tamaño del nombre de usuario es hasta 50 caracteres.
+	*/
+	printf("Introduzca su nombre de usuario:\n");
+	char usuario[50];
+	scanf("%s",usuario);
+
 	//if (write(s, DATOS, sizeof DATOS)<0) {
 	//		perror("escribiendo el socket:");
 	//		exit(3);
