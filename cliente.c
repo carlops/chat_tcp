@@ -15,6 +15,13 @@
 #include <netinet/in.h>
 #include <pthread.h>
 #include "extras.h"
+#include <string.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <unistd.h>
+
+pthread_t idthread;
+int idfd;
 
 int main(int argc, char *argv[]) {
 
@@ -24,6 +31,7 @@ int main(int argc, char *argv[]) {
 
 	if ((argc%2!=1)||(argc>7)||!host||!puerto)
 		perror("Parametros invalidos");
+		exit(4);
 
 	int s;					  // El socket de conexion
 	struct sockaddr_in local; // Direccion local
@@ -34,14 +42,14 @@ int main(int argc, char *argv[]) {
 							  //  como direccion IP
 
 	/* Creacion del socket */
-	s = socket(PF_INET, SOCK_STREAM, 0);
+	s = socket(AF_INET, SOCK_STREAM, 0);
 	/* comprobacion de errores */
 	if (s<0) {
 			perror("creando socket:");
 			exit(1);
 	}
 	/* Asignacion de direccion al socket.
-	 * En el caso del cliente el numero de puerto local,
+	 * En el caso del cliente, el numero de puerto local
 	 * es suministrado por en la invocacion del cliente con la bandera '-l',
 	 * este parametro es opcional. 
 	 * En caso de no sea suministrado podemos dejar que lo elija el sistema,
@@ -75,12 +83,13 @@ int main(int argc, char *argv[]) {
 	else
 			servidor = gethostbyname(host);
 	if (servidor==NULL) {
-			fprintf(stderr, "Nombre de Dominio o Direccion IP erronea.\n");
+			perror("Nombre de Dominio o Direccion IP erronea.\n");
 			exit(2);
 	}
-	memcpy(&serv.sin_addr.s_addr, servidor->h_addr, servidor->h_length);
-	/* Llenando los ultimos campos de serv */
+	bzero(&serv,sizeof(serv));
 	serv.sin_family = AF_INET;
+	memcpy(&serv.sin_addr, servidor->h_addr_list[0], servidor->h_length);
+	/* Llenando los ultimos campos de serv */
 	serv.sin_port = htons(atoi(puerto));
 	/* Conectando */
 	if (connect(s, (struct sockaddr *) &serv, sizeof(serv))<0) {
@@ -88,10 +97,10 @@ int main(int argc, char *argv[]) {
 			exit(3);
 	}
 	/* Si hemos llegado hasta aqui, la conexion esta establecida */
-	if (write(s, DATOS, sizeof DATOS)<0) {
-			perror("escribiendo el socket:");
-			exit(3);
-	}
+	//if (write(s, DATOS, sizeof DATOS)<0) {
+	//		perror("escribiendo el socket:");
+	//		exit(3);
+	//}
 	/* Todo bien. Podemos cerrar el socket y terminar */
 	close(s);
 	exit(0);
