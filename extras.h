@@ -1,13 +1,33 @@
 /*
- * EXTRAS
+ *	Proyecto: Sistema de Chat Simple (SCS)
+ *	
+ * 	Módulo Extra
+ *	extras.h
  *
- * funciones auxiliares y eso
+ *	Descripción:	Este módulo contiene las firmas de los métodos extras.
+ *
+ * 	Fecha:	11/03/2015
+ *
+ *	Autores:	09-10329 María Gabriela Giménez
+ *				09-10672 Carlo Polisano
+ *				09-10971 Alejandro Guevara
+ *				10-10534 Jesús Adolfo Parra
  *
  */
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+
+/*
+    Nombre: obternerParametro
+    Descripcion: Se encarga de obtener el argumento que corresponde a un cierto 
+                    flag de la entrada.
+    Argumentos: -flag: String que puede ser -d, -p, -l.
+                -argv: Arreglo que representa los argumentos introducidos.
+                -argc: Entero que representa el numero total de argumentos.
+    Return: String con el argumento correspondiente al flag indicado.
+*/
+extern char *obtenerParametro(char *flag,char *argv[], int argc);
+
+
 
 /*
 void Herror(char *er){
@@ -17,5 +37,3 @@ void Herror(char *er){
     exit(1);
 }
 */
-
-extern char *obtener_parametros(char *flag,char *argv[], int argc);
