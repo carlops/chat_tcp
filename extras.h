@@ -69,3 +69,6 @@ extern int verificar(char** msj);
                 segundo es el argumento.
 */
 extern char **separar (char *comando);
+
+
+extern char *error_handler(int numerror);

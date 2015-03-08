@@ -187,4 +187,47 @@ char **separar (char *comando){
 	return comandoSep;
 }
 
+/**
+Metodo: error_handler
+Descripcion: este metodo proporciona los diversos mensajes de error que 
+             pueden producirse durante la ejecucion del programa
+@param numerror es el entero que representa el codigo del error ocurrido
+@returns un string, es el mensaje que indica cual fue el error que ocurrio
+*/
+char *error_handler(int numerror){
+
+     char *mensaje = (char *) calloc(sizeof(char), 100);
+     if(mensaje==NULL) fatalerror("Solicitud de memoria denegada");
+
+     switch (numerror) {
+
+     case 0:
+            sprintf(mensaje,"servidor@servidor: Comando no encontrado.");
+            break;
+     case 1:
+            sprintf(mensaje,"servidor@servidor: La sala ya existe.");
+            break;
+     case 2:
+           sprintf(mensaje,"servidor@servidor: La sala no existe.");
+           break;
+     case 3:
+           sprintf(mensaje,"servidor@servidor: Ya esta suscrito a esta sala.");
+           break;
+     case 4:
+           sprintf(mensaje,"servidor@servidor: No puede eliminar la sala por defecto.");
+           break;
+     case 5:
+           sprintf(mensaje,"servidor@servidor: Parametros incompletos para este comando.");
+           break;
+     case 6:
+           sprintf(mensaje,"servidor@servidor: Su nombre de usuario ya existe.\n");
+           break;
+
+
+    }
+
+    return mensaje;
+
+}
+
 

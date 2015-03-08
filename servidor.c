@@ -137,7 +137,7 @@ void crearUsuario(infoUsr *usr) {
 		perror("Error, solicitud de memoria denegada.\n");
 		exit(4);
 	}
-	usr->salas[0] = (char *) malloc(sizeof(char)*strlen(salas[0]));
+	usr->salas[0] = (char *) calloc(sizeof(char), strlen(salas[0]));
 	if (usr->salas[0]==NULL){
 		perror("Error, solicitud de memoria denegada.\n");
 		exit(5);
@@ -152,8 +152,8 @@ void crearUsuario(infoUsr *usr) {
 
 	} else {
 		losUsuarios = (infoUsr **) realloc(losUsuarios,sizeof(infoUsr *)*
-						(EXTRA_ARREGLO+tamMaxUsr));
-		tamMaxUsr += EXTRA_ARREGLO;
+						(MAXTAM+tamMaxUsr));
+		tamMaxUsr += MAXTAM;
 		losUsuarios[totalUsr] = usr;
 		usr->posarray = totalUsr++;
 	}
@@ -192,7 +192,7 @@ void *hiloServidor(void *arg) {
 	while (1){
 		leerSocket((*usr).fd,  &buffer);
 		if(buffer == NULL) continue;
-		sep = split(buffer);
+		sep = separar(buffer);
 		free(buffer);
 		ejecutar_peticion((*usr).posarray,sep);
 		if(!strcmp(sep[0],"fue")) break;
@@ -333,13 +333,13 @@ int main(int argc, char *argv[]) {
 		tiempo = obtenerFechaHora();
 		fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
 		printf("%sNuevo usuario conectado al servidor\n",tiempo);
-
-		if (!(usr=(struct infoUsr*) malloc(sizeof(struct infoUsr)))){
+		infoUsr *usr = (infoUsr *) calloc(sizeof(infoUsr),1);
+		if (usr == NULL){
 			perror("Error, solicitud de memoria denegada.\n");
 			exit(9);
 		}
 		usr->fd = nuevoS;
-		if (pthread_create(&(arg->id),NULL,hiloServidor,(void *) arg)){
+		if (pthread_create(&(usr->id),NULL,hiloServidor,(void *) usr)){
 			perror("Error en la creación del hilo en el Servidor.\n");
 			exit(10);
 		}
