@@ -300,28 +300,45 @@ ini_socket(Lista_sockets *L){
 
 elim_usuario(Lista_usuarios *L, char *string){
 	Lista_usuarios *temp = L;
-	Lista_usuarios *temp_T;
+	Lista_usuarios *temp_T = temp;
 	
 	if (temp==NULL){
 		return;
 	}
 	else{
-			while (temp != NULL){
 			if (strcmp(temp->user->nombre,string)==0){
-				temp_T = temp;
-				if (temp_T->sig != NULL){
-					temp_T->sig->fin = temp_T->fin;
+				if (temp->sig != NULL){
+						temp->sig->fin = temp->fin;
+						*L = *temp->sig;
+						free(temp->user);
+						free(temp);
 				}
-				*L = *temp_T->sig;
-				free(temp->user);
-				free(temp);
+				else{
+					*L = NULL;
+						free(temp->user);
+						free(temp);
+				}
 			}
-			temp = temp->sig;
+			
+			while (temp->sig != NULL){
+
+				temp_T = temp;
+				temp = temp->sig;
+
+				if (strcmp(temp->user->nombre,string)==0){
+				
+					if (temp->sig != NULL){
+						temp_T->sig = temp->sig;
+					}
+					free(temp->user);
+					free(temp);
+				}
 		}
 	}
 	return;
 }
 // Funcion para eliminar un sala de una lista de salas
+// FALTA LIBERAR LOS SOCKETS
 elim_sala(Lista_salas *L, char *string){
 	Lista_salas *temp = L;
 	Lista_salas *temp_T;
@@ -330,18 +347,33 @@ elim_sala(Lista_salas *L, char *string){
 		return;
 	}
 	else{
-			while (temp != NULL){
 			if (strcmp(temp->room->nombre,string)==0){
-				temp_T = temp;
-				if (temp_T->sig != NULL){
-					temp_T->sig->fin = temp_T->fin;
+				if (temp->sig != NULL){
+						temp->sig->fin = temp->fin;
+						*L = *temp->sig;
+						free(temp->room);
+						free(temp);
 				}
-				*L = *temp_T->sig;
-				free(temp->room);
-				//Faltaria liberar la lista de sockets 
-				free(temp);
+				else{
+					*L = NULL;
+						free(temp->room);
+						free(temp);
+				}
 			}
-			temp = temp->sig;
+			
+			while (temp->sig != NULL){
+
+				temp_T = temp;
+				temp = temp->sig;
+
+				if (strcmp(temp->room->nombre,string)==0){
+				
+					if (temp->sig != NULL){
+						temp_T->sig = temp->sig;
+					}
+					free(temp->room);
+					free(temp);
+				}
 		}
 	}
 	return;
@@ -356,17 +388,33 @@ elim_socket(Lista_sockets*L, int *n){
 		return;
 	}
 	else{
-			while (temp != NULL){
 			if (temp->socket->socket == *n){
-				temp_T = temp;
-				if (temp_T->sig != NULL){
-					temp_T->sig->fin = temp_T->fin;
+				if (temp->sig != NULL){
+						temp->sig->fin = temp->fin;
+						*L = *temp->sig;
+						free(temp->room);
+						free(temp);
 				}
-				*L = *temp_T->sig;
-				free(temp->socket);
-				free(temp);
+				else{
+					*L = NULL;
+						free(temp->nombre);
+						free(temp);
+				}
 			}
-			temp = temp->sig;
+			
+			while (temp->sig != NULL){
+
+				temp_T = temp;
+				temp = temp->sig;
+
+				if (temp->socket->socket == *n){
+				
+					if (temp->sig != NULL){
+						temp_T->sig = temp->sig;
+					}
+					free(temp->nombre);
+					free(temp);
+				}
 		}
 	}
 	return;
