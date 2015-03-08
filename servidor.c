@@ -130,7 +130,7 @@ struct tabla_salas {
 	Lista_salas T[TAM];	
 };
 
-// Alias para todas las talbas de hash
+// Alias para todas las tablas de hash
 typedef struct tabla_usuarios Tabla_Hash_Us;
 typedef struct tabla_sockets Tabla_Hash_So;
 typedef struct tabla_salas Tabla_Hash_Sa;
@@ -255,23 +255,23 @@ agregar_sala(Lista_salas *L, sala *hab){
 }
 
 // Funcion para agregar un socket a una lista
-agregar_socket(Lista_sockets *L, socket_s *socket){
+agregar_socket(Lista_sockets *L, socket_s *sock){
 	Lista_sockets *temp = L;
 	Lista_sockets *temp_T;
 	
 	if (temp->socket== NULL){
-		temp->socket = user;
+		temp->socket = sock;
 		temp->fin = temp;
 		temp->sig = NULL;
 	}
 	else{
-		temp_T = malloc(sizeof(Lista_sockets);
-		temp_T->socket=socket;
+		temp_T = malloc(sizeof(Lista_sockets));
+		temp_T->socket=sock;
 		temp_T->sig =  NULL;
 		temp_T->fin = NULL;
 		temp->fin->sig=temp_T;
 		temp->fin = temp_T;		
-	}
+	};
 }
 
 
@@ -283,14 +283,14 @@ ini_usuario(Lista_usuarios *L){
 }
 
 // Funcion para inicializar una lista de salas
-ini_sala(Lista_salas *L, sala *hab){
+ini_sala(Lista_salas *L){
 	L->room = NULL;
 	L->sig= NULL;
 	L->fin = NULL;
 }
 
 // Funcion para inicializar una lista de sockets
-ini_socket(Lista_sockets *L, socket_s *socket){
+ini_socket(Lista_sockets *L){
 	L->socket= NULL;
 	L->sig= NULL;
 	L->fin = NULL;
@@ -312,15 +312,14 @@ elim_usuario(Lista_usuarios *L, char *string){
 				if (temp_T->sig != NULL){
 					temp_T->sig->fin = temp_T->fin;
 				}
-				*L = temp_T->sig;
-				free(temp->sala);
+				*L = *temp_T->sig;
 				free(temp->user);
 				free(temp);
 			}
 			temp = temp->sig;
 		}
 	}
-	return
+	return;
 }
 // Funcion para eliminar un sala de una lista de salas
 elim_sala(Lista_salas *L, char *string){
@@ -337,7 +336,7 @@ elim_sala(Lista_salas *L, char *string){
 				if (temp_T->sig != NULL){
 					temp_T->sig->fin = temp_T->fin;
 				}
-				*L = temp_T->sig;
+				*L = *temp_T->sig;
 				free(temp->room);
 				//Faltaria liberar la lista de sockets 
 				free(temp);
@@ -345,7 +344,7 @@ elim_sala(Lista_salas *L, char *string){
 			temp = temp->sig;
 		}
 	}
-	return
+	return;
 }
 
 // Funcion para eliminar un socket de una lista de sockets
@@ -363,61 +362,60 @@ elim_socket(Lista_sockets*L, int *n){
 				if (temp_T->sig != NULL){
 					temp_T->sig->fin = temp_T->fin;
 				}
-				*L = temp_T->sig;
+				*L = *temp_T->sig;
 				free(temp->socket);
-				free(temp->nombre);
 				free(temp);
 			}
 			temp = temp->sig;
 		}
 	}
-	return
+	return;
 }
 
 // Funcion para agregar un usuario a una tabla de hash
 agregarUsuario(Tabla_Hash_Us t, usuario *user){
 	int k;
 	k = hash(user->nombre,TAM);
-	return  agregar_usuario(t.T[k],user);
+	return  agregar_usuario(&t.T[k],user);
 }
 
 // Funcion para agregar una sala a una tabla de hash
 agregarSala(Tabla_Hash_Sa t, sala *room){
 	int k;
 	k = hash(room->nombre,TAM);
-	return  agregar_sala(t.T[k],room);
+	return  agregar_sala(&t.T[k],room);
 }
 
 // Funcion para agregar un socket a una tabla de hash
-agregarSocket(Tabla_Hash_So t, socket *sock){
+agregarSocket(Tabla_Hash_So t, socket_s *sock){
 	int k;
 	char string[50];
-	sprintf(string,"%d",&(sock->socket));
+	sprintf(string,"%d",&sock->socket);
 	k = hash(string,TAM);
-	return  agregar_socket(t.T[k],sock);
+	return  agregar_socket(&t.T[k],sock);
 }
 
 // Funcion para eliminar un usuario de una tabla de hash
 eliminarUsuario(Tabla_Hash_Us t, char *string){
 	int k;
 	k = hash(string,TAM);
-	elim_usuario(t.T[k],string);
+	elim_usuario(&t.T[k],string);
 }
 
 // Funcion para eliminar una sala de una tabla de hash
 eliminarSala(Tabla_Hash_Sa t, char *string){
 	int k;
 	k = hash(string,TAM);
-	elim_sala(t.T[k],string);
+	elim_sala(&t.T[k],string);
 }
 
 // Funcion para eliminar un socket de una tabla de hash
 eliminarSocket(Tabla_Hash_So t, int * n){
 	int k;
 	char string[50];
-	sprintf(string,"%d",n));
+	sprintf(string,"%d",n);
 	k = hash(string,TAM);
-	elim_socket(t.T[k],n);
+	elim_socket(&t.T[k],n);
 }
 
 // Funcion para inicializar tabla de hash
@@ -425,24 +423,24 @@ inicializar_tablas(void *t, int c){
 	// cambiar a switch
 	int i=0;
 	if (c == '0'){
-		tabla_usuarios *T;
-		T = (tabla_usuarios *) t;
+		Tabla_Hash_Us *T;
+		T = (Tabla_Hash_Us *) t;
 		for (i;i<TAM;i++){
-			ini_usuario(T.T[i]);
+			ini_usuario(&T->T[i]);
 		}
 	}
 	else if (c == '1'){
-		tabla_salas *T;
-		T = (tabla_salas *) t;
+		Tabla_Hash_Sa *T;
+		T = (Tabla_Hash_Sa *) t;
 		for (i;i<TAM;i++){
-			ini_sala(T.T[i]);
+			ini_sala(&T->T[i]);
 		}
 	}
 	else {
-		tabla_sockets *T;
-		T = (tabla_sockets *) t;
+		Tabla_Hash_So *T;
+		T = (Tabla_Hash_So *) t;
 		for (i;i<TAM;i++){
-			ini_socket(T.T[i]);
+			ini_socket(&T->T[i]);
 		}
 	}
 }
