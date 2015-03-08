@@ -1,10 +1,22 @@
 /*
- * Servidor
- * compilar con: (-g es opcional para debuggear)
- * gcc -pthread -g -o scs_svr servidor.c extras.c
+ *	Proyecto: Sistema de Chat Simple (SCS)
+ *	
+ * 	Módulo del Servidor 
+ *	servidor.c
  *
- * Se corre asi:
- * scs_svr -l <puerto-servidor(local)> -b <archivo_bitácora>
+ *	Descripción:	Este módulo contiene todos los procedimientos relacionados 
+ * 					al Servidor en la conexión a través de sockets.
+ *
+ *	Compilar con: make servidor
+ *
+ *	Correr: scs_svr -l <puerto-servidor(local)> -b <archivo_bitácora>
+ *
+ * 	Fecha:	11/03/2015
+ *
+ *	Autores:	09-10329 María Gabriela Giménez
+ *				09-10672 Carlo Polisano
+ *				09-10971 Alejandro Guevara
+ *				10-10534 Jesús Adolfo Parra
  *
  */
 
