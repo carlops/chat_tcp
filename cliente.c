@@ -230,8 +230,7 @@ int main(int argc, char *argv[]) {
 	/* Creación de hilo para el usuario.
 	 	Este hilo es para escuchar los mensajes dirigidos a este usuario.
 	 */
-	int rc = 0;
-	if (rc = pthread_create(&idthread,NULL,hiloUsuario, (void *) &s)){
+	if (pthread_create(&idthread,NULL,hiloUsuario, (void *) &s)){
 		perror("Error, en la creación del hilo en usuario.\n");
 		exit(7);
 	}

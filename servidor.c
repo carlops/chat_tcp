@@ -38,6 +38,19 @@
 #define MAXTAM 10
 
 
+/* TIPOS */
+struct Usuario {
+    pthread_t id;
+    int fd;
+	char *nombre;
+	int posarray;
+    char **salas;//falta el tipo
+};
+typedef struct Usuario infoUsr;
+
+
+/* METODOS Y FUNCIONES */
+
 /*
 	Nombre: obtenerFechaHora
 	Descripción: Se encarga de buscar la fecha y hora actual.
@@ -57,28 +70,143 @@ char *obtenerFechaHora(){
     return tiempo;
 }
 
-struct Usuario {
-    pthread_t id;
-    int fd;
-	char *nombre;
-	int posarray;
-    char **salas;//falta el tipo
-};
 
-typedef struct Usuario infoUsr;
+/*
+	Nombre: crearUsuario
+	Descripción: Se enccarga de incializar todo lo que este relacionado con
+					el usuario cuando éste entra en la sala de chat e indica
+					el momento en que el usuario es aceptado.
+	Parámetros:	- usr: Usuario que desea entrar en la sala de chat.
+*/
+void crearUsuario(infoUsr *usr) {
 
-void *manejadorHilo(void *arg); 
+	ed_mutex_lock(&mutexusr);
+	char *buffer, *error_encontrado;
+	int  tam = 0, encontrado = 0, i = 0, ok;
+	leerSocket(usr->fd, &buffer);
 
-struct lista{
-    char name[50];
-    struct userdb *sig;
-};
+	while((i<totalUsr)&&(!encontrado)){
+		encontrado = !strcmp(buffer,(*losUsuarios[i]).nombre);
+		i++;
+	}
+
+	if(encontrado){
+		error_encontrado = (char *) malloc(sizeof(char)* 5);
+		if(error_encontrado==NULL){ 
+			perror("Error, solicitud de memoria denegada.\n");
+			exit(1);
+		}
+		escribirSocket(usr->fd, error_encontrado);
+		free(error_encontrado); 
+		error_encontrado = error_handler(6);
+		escribirSocket(usr->fd, error_encontrado);
+		free(error_encontrado);
+		ok = close(usr->fd);
+		if (ok < 0){
+			perror("Error, no se cerró el socket correctamente.\n");
+			exit(2);
+		}
+		pthread_mutex_unlock(&mutexusr);
+		ok = pthread_cancel(usr->id);
+		if (ok != 0){ 
+			perror("Error, no se pudo cancelar el hilo.\n");
+			exit(3);
+		}
+	}  
+
+	escribir_socket(usr->fd,"1");
+	usr->nombre = buffer;
+	usr->salas = (char **) malloc(sizeof(char *));
+	if(usr->salas == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(4);
+	}
+	usr->salas[0] = (char *) malloc(sizeof(char)*strlen(salas[0]));
+	if (usr->salas[0]==NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(5);
+	}
+	strcpy(usr->salas[0], salas[0]);
+	usr->totalSalas = 1;
+	usr->tamMaxSala = MAXTAM;
+
+	if (totalUsr < tamMaxUsr){
+		losUsuarios[totalUsr]= usr;
+		usr->posarray = totalUsr++;
+
+	} else {
+		losUsuarios = (infoUsr **) realloc(losUsuarios,sizeof(infoUsr *)*
+						(EXTRA_ARREGLO+tamMaxUsr));
+		tamMaxUsr += EXTRA_ARREGLO;
+		losUsuarios[totalUsr] = usr;
+		usr->posarray = totalUsr++;
+	}
+
+	char *aviso = (char *) malloc(sizeof(char)*100);
+	if (aviso == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(6);
+	}
+	sprintf(aviso,"Su solicitud ha sido aceptada, ha ingresado a la sala '%s' por defecto\n",salas[0]);
+	incluir_verificacion(1, &aviso);
+	escribir_socket(usr->fd, aviso);
+	free(aviso);
+	pthread_mutex_unlock(&mutexusr);
+}
+
+
+/*
+	Nombre: hiloServidor
+	Descripción: Se encarga de llamar el hilo del servidor para así esperar
+					las peticiones de un único cliente asignado.
+	Parámetros:	- arg: Apuntador a un usuario para cumplir sus requerimientos
+						en la llamada a un hilo.
+*/
+void *hiloServidor(void *arg) {
+	infoUsr *usr = (infoUsr *) arg;
+	pthread_t id = (*usr).id;
+	crearUsuario(usr);
+	char* buffer;
+	char** sep; 
+	int ok = 0;
+
+	/* Espera por el input del cliente.
+
+	*/
+	while (1){
+		leerSocket((*usr).fd,  &buffer);
+		if(buffer == NULL) continue;
+		sep = split(buffer);
+		free(buffer);
+		ejecutar_peticion((*usr).posarray,sep);
+		if(!strcmp(sep[0],"fue")) break;
+		free(sep[0]);
+		free(sep);
+	}
+
+	free(sep[0]);
+	free(sep);
+	pthread_cancel(id);
+	if(ok != 0) {
+		perror("Error, no se pudo cancelar el hilo.");
+		exit(1);
+	}
+}
 
 
 /* VARIABLES */
-int cantusr, cantsalas, maxindexsala, maxindexusr;
-Usuario **arrayusr;
+/*
+    	- totalUsr: 	Cantidad de usuarios.
+    	- totalSalas:	Cantidad de salas.
+    	- losUsuarios:	Arreglo de usuarios.
+    	- salas:		Arreglo de salas.
+    	- tamMaxSala:	Número máximo de salas.
+    	- tamMaxUsr:	Número máximo de ususarios.
+    */
+int totalUsr, totalSalas, tamMaxSala, tamMaxUsr;
+Usuario **losUsuarios;
 char **salas;
+
 pthread_mutex_t mutexsala  = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t mutexusr  = PTHREAD_MUTEX_INITIALIZER;
 
@@ -110,12 +238,12 @@ int main(int argc, char *argv[]) {
 
 	/*
 		- s: 			Socket de conexión del Servidor.
-   	    - my_addr:		Dirección local del Servidor.
-   	    - client_addr:	
+   	    - local:		Dirección local del Servidor.
+   	    - cliente:	Direccción del Cliente.
    */
    	int s;
-	struct sockaddr_in my_addr;
-	struct sockaddr_in client_addr;
+	struct sockaddr_in local;
+	struct sockaddr_in cliente;
 
     /* Creación del socket.
 		El dominio es AF_INET, que representa IPv4.
@@ -134,13 +262,13 @@ int main(int argc, char *argv[]) {
 	   La dirección IP local se obtiene con INADDR_ANY.
 	   Y se le asigna el puerto local.
 	*/
-    bzero(&my_addr,sizeof(my_addr));
-	my_addr.sin_family = AF_INET;
-	my_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
-    my_addr.sin_port = htons(atoi(puerto));
+    bzero(&local,sizeof(local));
+	local.sin_family = AF_INET;
+	local.sin_addr.s_addr = htonl(INADDR_ANY); 
+    local.sin_port = htons(atoi(puerto));
 
     /* Asignación de la dirección al socket creado. */
-    if ((bind(s, (struct sockaddr *) &my_addr, sizeof(my_addr))) < 0){
+    if ((bind(s, (struct sockaddr *) &local, sizeof(local))) < 0){
     	perror("Error creando el bind el Servidor.\n");
 		exit(4);
     }
@@ -160,18 +288,11 @@ int main(int argc, char *argv[]) {
     fprintf(fd,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
     printf("%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
 
-    /*
-    	- cantusr:
-    	- cantsalas:
-    	- arrayusr:
-    	- salas:
-    	- maxindexsala:
-    	- maxindexusr:
-    */
-	cantusr = 0;
-	cantsalas = 1;
-	arrayusr = (infoUsr **) malloc(sizeof(infoUsr *));
-	if (arrayusr == NULL){
+    /* Se inicializan los usuarios y las salas.*/
+	totalUsr = 0;
+	totalSalas = 1;
+	losUsuarios = (infoUsr **) malloc(sizeof(infoUsr *));
+	if (losUsuarios == NULL){
 	   	perror("Error, solicitud de memoria denegada.\n");
 		exit(6);
 	}
@@ -180,8 +301,8 @@ int main(int argc, char *argv[]) {
 		perror("Error, solicitud de memoria denegada.\n");
 		exit(7);
 	}
-	maxindexsala = MAXTAM;
-	maxindexusr = MAXTAM;
+	tamMaxSala = MAXTAM;
+	tamMaxUsr = MAXTAM;
 	salas[0] = "SALA_1";
 	free(puerto);
 
@@ -189,158 +310,42 @@ int main(int argc, char *argv[]) {
 	//signal(SIGINT, salidaForzada);	
 
 
-    //pthread_t hilo;
-    //struct infoUsr *arg;
-    //struct lista userdb
+    /*
+    	- clienteTam: 	Tamaño de la dirección del cliente.
+    	- nuevoS:		Nuevo Socket.
+    	- usr:			Usuario actual.
+    */
 
-    int client_size, newfd, n;
+    int clienteTam, nuevoS;
+    struct infoUsr *usr;
 
-	//Espera por clientes
+	/* Ciclo infinito esperando las peticiones del cliente.
+		Se van creando los sockets con las peticiones y se va informando
+		también en la bitácora.
+	*/
 	while(42) {
-		client_size = sizeof(client_addr);
-		newfd = accept(s,PSOCK_ADDR &client_addr,&client_size);
-		if (newfd<0) {
-				perror("No se pudo establecer la coneccion");
-				exit(5);
+		clienteTam = sizeof(cliente);
+		nuevoS = accept(s,(struct sockaddr *) &cliente, &clienteTam);
+		if (nuevoS < 0) {
+			perror("Error, no se pudo establecer la conexión.\n");
+			exit(8);
 		}
-		tiempo = obtenerFechaHora();
+		tiempo = obtenerFechaHora;
 		fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
 		printf("%sNuevo usuario conectado al servidor\n",tiempo);
 
-		if (!(arg=(struct infoUsr*) malloc(sizeof(struct infoUsr)))){
-				perror("Error en asignacion de memoria");
-				exit(6);
+		if (!(usr=(struct infoUsr*) malloc(sizeof(struct infoUsr)))){
+			perror("Error, solicitud de memoria denegada.\n");
+			exit(9);
 		}
-	//	arg->id=0;
-		arg->fd=newfd;
-		//conectarse
-		//login();
-	//	char username[100];
-	//	n = recv(newfd,username,100,0);
-		//buscar en userdb   
-
-
-		if (pthread_create(&(arg->id),NULL,&manejadorHilo,(void *) arg)){
-				perror("Error en la creacion del hilo");
-				exit(7);
+		usr->fd = nuevoS;
+		if (pthread_create(&(arg->id),NULL,hiloServidor,(void *) arg)){
+			perror("Error en la creación del hilo en el Servidor.\n");
+			exit(10);
 		}
-		//close(newfd);
 	} 
-
 }
 
-void *manejadorHilo(void *arg) {
-		infoUsr *usr = (infoUsr *) arg;
-		pthread_t id = (*usr).id;
-		crearUsuario(usr);
-		char* buffer;
-		char** sep; 
-		int ok=0;
-
-		while (1){ //espera por el input del cliente
-
-				leer_socket((*usr).fd,  &buffer);
-				if(buffer==NULL) continue;
-				sep = split(buffer);
-				free(buffer);
-				ejecutar_peticion((*usr).posarray,sep);
-				if(!strcmp(sep[0],"fue")) break;
-				free(sep[0]);
-				free(sep);
-
-		}
-
-		free(sep[0]);
-		free(sep);
-		pthread_cancel(id);
-		if(ok!=0) {
-				perror("No se pudo cancelar el hilo.");
-				exit(7);
-		}
-}
-
-void crearUsuario(infoUsr *usr) {
-
-		ed_mutex_lock(&mutexusr);
-
-		char *buffer, *error_encontrado;
-		int  tam=0, encontrado=0, i=0, ok;
-		leer_socket(usr->fd, &buffer);
-
-		while((i<cantusr)&&(!encontrado)){
-
-				encontrado = !strcmp(buffer,(*arrayusr[i]).nombre);
-				i++;
-		}
-
-		if(encontrado){
-
-				error_encontrado = (char *) malloc(sizeof(char)* 5);
-				if(error_encontrado==NULL){ 
-						perror("Error en solicitud de memoria");
-						exit(8);
-				}
-				escribir_socket(usr->fd, error_encontrado);
-				free(error_encontrado); 
-				error_encontrado = error_handler(6);
-				escribir_socket(usr->fd, error_encontrado);
-				free(error_encontrado);
-				ok = close(usr->fd);
-				if (ok<0){
-						perror("No se cerro socket correctamente");
-						exit(8);
-				}
-				pthread_mutex_unlock(&mutexusr);
-				ok = pthread_cancel(usr->id);
-				if(ok!=0){ 
-						perror("No se pudo cancelar el hilo");
-						exit(8);
-				}
-
-		}  
-
-		escribir_socket(usr->fd, "1");
-		usr->nombre = buffer;
-		usr->salas = (char **) malloc(sizeof(char *));
-		if(usr->salas==NULL){
-				perror("Error en solicitud de memoria");
-				exit(9);
-		}
-		usr->salas[0] = (char *) malloc(sizeof(char)*strlen(salas[0]));
-		if (usr->salas[0]==NULL){
-				perror("Error en solicitud de memoria");
-				exit(10);
-		}
-		strcpy(usr->salas[0], salas[0]);
-		//usr->cantsalas = 1;
-		//usr->maxindexsala = EXTRA_ARREGLO;
-
-		if(cantusr<maxindexusr){
-
-				arrayusr[cantusr]= usr;
-				usr->posarray = cantusr++;
-
-		} else {
-
-				arrayusr = (infoUsr **) realloc(arrayusr,sizeof(infoUsr *)*
-								(EXTRA_ARREGLO+maxindexusr));
-				maxindexusr += EXTRA_ARREGLO;
-				arrayusr[cantusr]= usr;
-				usr->posarray = cantusr++;
-
-		}
-
-		char *aviso = (char *) malloc(sizeof(char)*100);
-		if(aviso==NULL){
-				perror("Error en solicitud de memoria");
-				exit(11);
-		}
-		sprintf(aviso,"Su solicitud ha sido aceptada, ha ingresado a la sala '%s' por defecto\0",salas[0]);
-		incluir_verificacion(1, &aviso);
-		escribir_socket(usr->fd, aviso);
-		free(aviso);
-		pthread_mutex_unlock(&mutexusr);
-}
 
 void eliminarUsuario() {
 
