@@ -59,6 +59,7 @@ typedef struct user usuario;
 struct lista_enlazada_de_usuarios {
 	usuario *user;
 	struct lista_enlazada_de_usuarios *sig;
+	struct lista_enlazada_de_usuarios *fin;
 };
 
 // Alias para la lista enlazada de usuarios
@@ -68,6 +69,7 @@ typedef struct lista_enlazada_de_usuarios Lista_usuarios;
 struct lista_enlazada_de_sockets {
 	socket_s *socket;
 	struct lista_enlazada_de_sockets *sig;
+	struct lista_enlazada_de_sockets *fin;
 };
 
 // Alias para la lista enlazada de sockets
@@ -87,6 +89,7 @@ typedef struct room sala;
 struct lista_enlazada_de_salas {
 	sala *room;
 	struct lista_enlazada_de_salas *sig;
+	struct lista_enlazada_de_salas *fin;
 };
 
 // Alias para las listas enlazadas de salas
@@ -189,6 +192,179 @@ socket_s * buscarSocket(Tabla_Hash_So t, int *n){
 	k = hash(string,TAM);
 	return  buscar_socket_lista(t.T[k],n);
 }
+
+// Funcion para agregar un usuario a una lista
+agregar_usuario(Lista_usuarios *L, usuario *user){
+	Lista_usuarios *temp = L;
+	Lista_usuarios *temp_T;
+	
+	if (temp->user == NULL){
+		temp->user = user;
+		temp->fin = temp;
+		temp->sig = NULL;
+	}
+	else{
+		temp_T = malloc(sizeof(Lista_usuarios));
+		temp_T->user=user;
+		temp_T->sig =  NULL;
+		temp_T->fin = NULL;
+		
+		temp->fin->sig=temp_T;
+		temp->fin = temp_T;
+	}
+}
+
+// Funcion para agregar un sala a una lista
+agregar_sala(Lista_salas *L, sala *hab){
+	Lista_salas *temp = L;
+	Lista_salas *temp_T;
+	
+	if (temp->room == NULL){
+		temp->room = hab;
+		temp->fin = temp;
+		temp->sig = NULL;
+	}
+	else{
+		temp_T = malloc(sizeof(Lista_salas));
+		temp_T->room=hab;
+		temp_T->sig =  NULL;
+		temp_T->fin = NULL;		
+		temp->fin->sig=temp_T;
+		temp->fin = temp_T;		
+	}
+}
+
+// Funcion para agregar un socket a una lista
+agregar_socket(Lista_sockets *L, socket_s *socket){
+	Lista_sockets *temp = L;
+	Lista_sockets *temp_T;
+	
+	if (temp->socket== NULL){
+		temp->socket = user;
+		temp->fin = temp;
+		temp->sig = NULL;
+	}
+	else{
+		temp_T = malloc(sizeof(Lista_sockets);
+		temp_T->socket=socket;
+		temp_T->sig =  NULL;
+		temp_T->fin = NULL;
+		temp->fin->sig=temp_T;
+		temp->fin = temp_T;		
+	}
+}
+
+
+// Funcion para inicializar una lista de usuarios
+ini_usuario(Lista_usuarios *L){
+	L->user = NULL;
+	L->sig= NULL;
+	L->fin = NULL;
+}
+
+// Funcion para inicializar una lista de salas
+ini_sala(Lista_salas *L, sala *hab){
+	L->room = NULL;
+	L->sig= NULL;
+	L->fin = NULL;
+}
+
+// Funcion para inicializar una lista de sockets
+ini_socket(Lista_sockets *L, socket_s *socket){
+	L->socket= NULL;
+	L->sig= NULL;
+	L->fin = NULL;
+}
+
+// Funcion para eliminar un usuario de una lista de usuarios
+
+elim_usuario(Lista_usuarios *L, char *string){
+	Lista_usuarios *temp = L;
+	Lista_usuarios *temp_T;
+	
+	if (temp==NULL){
+		return;
+	}
+	else{
+			while (temp != NULL){
+			if (strcmp(temp->user->nombre,string)==0){
+				temp_T = temp;
+				if (temp_T->sig != NULL){
+					temp_T->sig->fin = temp_T->fin;
+				}
+				*L = temp_T->sig;
+				free(temp->sala);
+				free(temp->user);
+				free(temp);
+			}
+			temp = temp->sig;
+		}
+	}
+	return
+}
+// Funcion para eliminar un sala de una lista de salas
+elim_sala(Lista_salas *L, char *string){
+	Lista_salas *temp = L;
+	Lista_salas *temp_T;
+	
+	if (temp==NULL){
+		return;
+	}
+	else{
+			while (temp != NULL){
+			if (strcmp(temp->room->nombre,string)==0){
+				temp_T = temp;
+				if (temp_T->sig != NULL){
+					temp_T->sig->fin = temp_T->fin;
+				}
+				*L = temp_T->sig;
+				free(temp->room);
+				//Faltaria liberar la lista de sockets 
+				free(temp);
+			}
+			temp = temp->sig;
+		}
+	}
+	return
+}
+
+// Funcion para eliminar un socket de una lista de sockets
+elim_usuario(Lista_sockets*L, int *n){
+	Lista_sockets *temp = L;
+	Lista_sockets *temp_T;
+	
+	if (temp==NULL){
+		return;
+	}
+	else{
+			while (temp != NULL){
+			if (temp->socket->socket == *n){
+				temp_T = temp;
+				if (temp_T->sig != NULL){
+					temp_T->sig->fin = temp_T->fin;
+				}
+				*L = temp_T->sig;
+				free(temp->socket);
+				free(temp->nombre);
+				free(temp);
+			}
+			temp = temp->sig;
+		}
+	}
+	return
+}
+
+
+
+
+
+
+
+
+
+
+
+
 
 // char *get_time(){
 //     time_t t;
