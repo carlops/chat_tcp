@@ -114,7 +114,7 @@ void crearUsuario(infoUsr *usr) {
 		}
 	}  
 
-	escribir_socket(usr->fd,"1");
+	escribirSocket(usr->fd,"1");
 	usr->nombre = buffer;
 	usr->salas = (char **) malloc(sizeof(char *));
 	if(usr->salas == NULL){
@@ -149,7 +149,7 @@ void crearUsuario(infoUsr *usr) {
 	}
 	sprintf(aviso,"Su solicitud ha sido aceptada, ha ingresado a la sala '%s' por defecto\n",salas[0]);
 	incluir_verificacion(1, &aviso);
-	escribir_socket(usr->fd, aviso);
+	escribirSocket(usr->fd, aviso);
 	free(aviso);
 	pthread_mutex_unlock(&mutexusr);
 }
