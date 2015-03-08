@@ -284,7 +284,7 @@ int main(int argc, char *argv[]) {
     /* Se obtiene la fecha y hora.
     	Y se indica tanto en la bitácora como en la pantalla del Servidor.
     */
-    char *tiempo = obtenerFechaHora;
+    char *tiempo = obtenerFechaHora();
     fprintf(fd,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
     printf("%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
 
@@ -330,7 +330,7 @@ int main(int argc, char *argv[]) {
 			perror("Error, no se pudo establecer la conexión.\n");
 			exit(8);
 		}
-		tiempo = obtenerFechaHora;
+		tiempo = obtenerFechaHora();
 		fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
 		printf("%sNuevo usuario conectado al servidor\n",tiempo);
 
