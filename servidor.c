@@ -96,7 +96,7 @@ char *obtenerFechaHora(){
 */
 void crearUsuario(infoUsr *usr) {
 
-	ed_mutex_lock(&mutexusr);
+	pthread_mutex_lock(&mutexusr);
 	char *buffer, *error_encontrado;
 	int  tam = 0, encontrado = 0, i = 0, ok;
 	leerSocket(usr->fd, &buffer);
@@ -143,8 +143,8 @@ void crearUsuario(infoUsr *usr) {
 		exit(5);
 	}
 	strcpy(usr->salas[0], salas[0]);
-	usr->totalSalas = 1;
-	usr->tamMaxSala = MAXTAM;
+	//usr->totalSalas = 1;
+	//usr->tamMaxSala = MAXTAM;
 
 	if (totalUsr < tamMaxUsr){
 		losUsuarios[totalUsr]= usr;
@@ -171,6 +171,7 @@ void crearUsuario(infoUsr *usr) {
 }
 
 
+
 /*
 	Nombre: hiloServidor
 	Descripción: Se encarga de llamar el hilo del servidor para así esperar
@@ -194,7 +195,7 @@ void *hiloServidor(void *arg) {
 		if(buffer == NULL) continue;
 		sep = separar(buffer);
 		free(buffer);
-		ejecutar_peticion((*usr).posarray,sep);
+		//ejecutar_peticion((*usr).posarray,sep);
 		if(!strcmp(sep[0],"fue")) break;
 		free(sep[0]);
 		free(sep);
@@ -317,7 +318,6 @@ int main(int argc, char *argv[]) {
     */
 
     int clienteTam, nuevoS;
-    struct infoUsr *usr;
 
 	/* Ciclo infinito esperando las peticiones del cliente.
 		Se van creando los sockets con las peticiones y se va informando

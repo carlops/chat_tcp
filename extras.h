@@ -72,3 +72,5 @@ extern char **separar (char *comando);
 
 
 extern char *error_handler(int numerror);
+
+extern void incluir_verificacion(int estado, char** mensaje);
