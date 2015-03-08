@@ -59,7 +59,7 @@ typedef struct Usuario infoUsr;
     	- tamMaxUsr:	Número máximo de ususarios.
     */
 int totalUsr, totalSalas, tamMaxSala, tamMaxUsr;
-Usuario **losUsuarios;
+infoUsr **losUsuarios;
 char **salas;
 
 pthread_mutex_t mutexsala  = PTHREAD_MUTEX_INITIALIZER;
@@ -82,11 +82,10 @@ char *obtenerFechaHora(){
 
 	time_t t;
     time(&t);
-    struct Tiempo *timeInfo = localtime(&t);
+    struct tm *timeInfo = localtime(&t);
     strftime(tiempo,25,TIMEFORMAT,timeInfo);
     return tiempo;
 }
-
 
 /*
 	Nombre: crearUsuario
