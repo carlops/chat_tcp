@@ -314,7 +314,9 @@ elim_usuario(Lista_usuarios *L, char *string){
 						free(temp);
 				}
 				else{
-					*L = NULL;
+					L->user =NULL;
+					L->sig = NULL;
+					L->fin = NULL;
 						free(temp->user);
 						free(temp);
 				}
@@ -355,7 +357,10 @@ elim_sala(Lista_salas *L, char *string){
 						free(temp);
 				}
 				else{
-					*L = NULL;
+					L->room = NULL;
+					L->sig = NULL;
+					L->fin = NULL;
+					
 						free(temp->room);
 						free(temp);
 				}
@@ -392,12 +397,14 @@ elim_socket(Lista_sockets*L, int *n){
 				if (temp->sig != NULL){
 						temp->sig->fin = temp->fin;
 						*L = *temp->sig;
-						free(temp->room);
+						free(temp->socket);
 						free(temp);
 				}
 				else{
-					*L = NULL;
-						free(temp->nombre);
+					L->socket = NULL;
+					L->sig = NULL;
+					L->fin = NULL;
+						free(temp->socket);
 						free(temp);
 				}
 			}
@@ -412,7 +419,7 @@ elim_socket(Lista_sockets*L, int *n){
 					if (temp->sig != NULL){
 						temp_T->sig = temp->sig;
 					}
-					free(temp->nombre);
+					free(temp->socket);
 					free(temp);
 				}
 		}
