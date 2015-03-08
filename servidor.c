@@ -22,6 +22,7 @@
 #include <getopt.h>
 #include <string.h>
 
+// Funciona para calcular los hashes de los string
 int hash(char *string, int tam) {
 	int l;
 	int i=0;
@@ -33,66 +34,85 @@ int hash(char *string, int tam) {
 	return (c % tam);	
 }
 
+
+// Struct para los usuarios
 struct user {
 	char *nombre;
 	int socket;
 	char *sala;
 };
 
+// Struct para los sockets
 struct sockets_ser {
 	int socket;
 	char *nombre;
 };
 
+
+// Alias para los sockets
 typedef struct sockets_ser socket_s;
 
+// Alias para los usuarios
 typedef struct user usuario;
 
+// Lista enlazada de usuarios
 struct lista_enlazada_de_usuarios {
 	usuario *user;
 	struct lista_enlazada_de_usuarios *sig;
 };
 
+// Alias para la lista enlazada de usuarios
 typedef struct lista_enlazada_de_usuarios Lista_usuarios;
 
+// Lista enlazada de sockets
 struct lista_enlazada_de_sockets {
 	socket_s *socket;
 	struct lista_enlazada_de_sockets *sig;
 };
 
+// Alias para la lista enlazada de sockets
 typedef struct lista_enlazada_de_sockets Lista_sockets;
 
+// Struct para las salas
 struct room {
 	Lista_sockets sockets;
 	char *nombre;
 	char status;
 };
 
+// Alias para las salas
 typedef struct room sala;
 
+// Lista enlzada para las salas
 struct lista_enlazada_de_salas {
 	sala *room;
 	struct lista_enlazada_de_salas *sig;
 };
 
+// Alias para las listas enlazadas de salas
 typedef struct lista_enlazada_de_salas Lista_salas;
+
+// Tabla de hash para usuarios
 struct tabla_usuarios {
 	Lista_usuarios T[TAM];	
 };
 
+// Tabla de hash para sockets
 struct tabla_sockets {
 	Lista_sockets T[TAM];	
 };
 
+// Tabla de hash para salas
 struct tabla_salas {
 	Lista_salas T[TAM];	
 };
 
+// Alias para todas las talbas de hash
 typedef struct tabla_usuarios Tabla_Hash_Us;
 typedef struct tabla_sockets Tabla_Hash_So;
 typedef struct tabla_salas Tabla_Hash_Sa;
 
-
+// Funcion para buscar un usuario en una lista
 usuario * buscar_usuario_lista(Lista_usuarios L, char * string){
 	
 	Lista_usuarios *temp = &L;
@@ -110,6 +130,7 @@ usuario * buscar_usuario_lista(Lista_usuarios L, char * string){
 	
 }
 
+// Funcion para buscar un usuario en una tabla de hash
 usuario * buscarUsuario(Tabla_Hash_Us t, char *string){
 	int k;
 	usuario *valor;
@@ -117,6 +138,7 @@ usuario * buscarUsuario(Tabla_Hash_Us t, char *string){
 	return  buscar_usuario_lista(t.T[k],string);
 }
 
+// Funcion para buscar una sala en una lista
 sala * buscar_sala_lista(Lista_salas L, char * string){
 	
 	Lista_salas *temp = &L;
@@ -134,12 +156,14 @@ sala * buscar_sala_lista(Lista_salas L, char * string){
 	
 }
 
+// Funcion para buscar una sala en una tabla de hash
 sala * buscarSala(Tabla_Hash_Sa t, char *string){
 	int k;
 	k = hash(string,TAM);
 	return  buscar_sala_lista(t.T[k],string);
 }
 
+// Funcion para buscar un socket en una lista
 socket_s * buscar_socket_lista(Lista_sockets L, int * n){
 	
 	Lista_sockets *temp = &L;
@@ -157,6 +181,7 @@ socket_s * buscar_socket_lista(Lista_sockets L, int * n){
 	
 }
 
+// Funcion para buscar un socket en una tabla de hash
 socket_s * buscarSocket(Tabla_Hash_So t, int *n){
 	int k;
 	char string[50];
