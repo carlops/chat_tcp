@@ -34,6 +34,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
+#include <signal.h>
 #include "extras.h"
 
 
@@ -41,6 +42,17 @@
 pthread_t idthread;
 int idfd;
 
+/* METODOS */
+
+/*
+	Nombre: salidaForzada
+	Descripción: Se encarga de anunciarle al usuario cuando intenta salir del
+					programa ejecutando ctrl + c que es incorrecto y que si
+					desea salir del programa ejecute el comando "salir".
+*/
+void salidaForzada(){
+    printf("servidor@servidor: Salida inválida. Intente el comando 'salir'.\n");
+}
 
 /*	Nombre: hiloUsuario
 	Descripción: Se encarga de llamar el hilo de un usuario y así esperar los 
@@ -50,7 +62,7 @@ int idfd;
 void *hiloUsuario(void *arg){
 	char *msj;
 	int *aux = (int *) arg;
-	int s = *aux, idfd = *aux, servidorActivo = 2;
+	int s = *aux, idfd = *aux, servidorActivo = 42;
 
 	while(42){
 		leerSocket(s, &msj);
@@ -66,6 +78,7 @@ void *hiloUsuario(void *arg){
 
 	exit(0);
 }
+
 
 /* MAIN PRINCIPAL */
 int main(int argc, char *argv[]) {
@@ -212,7 +225,7 @@ int main(int argc, char *argv[]) {
 	free(msj);
 
 	/* En caso de haber recibido una señal de salida forzada (cntrl + c) */
-	//signal(SIGINT,salidaForzadaCliente);
+	signal(SIGINT, salidaForzada);
 
 	/* Creación de hilo para el usuario.
 	 	Este hilo es para escuchar los mensajes dirigidos a este usuario.

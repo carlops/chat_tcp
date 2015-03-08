@@ -123,22 +123,22 @@ void leerSocket(int s,char** msj){
 	Retorno: Entero que representa si se termina el programa o no.
 
 */
-int verificar(char** msj){
-	int salidaf = 2;
-	char *aux = *msj;
-	char*  buffer = (char *) malloc(sizeof(char)* strlen(*msj));
-	if (buffer == NULL){
+int verificar(char** msjLeido){
+	int salidafinal = 42;
+	char *aux = *msjLeido;
+	char*  msj = (char *) malloc(sizeof(char)* strlen(*msjLeido));
+	if (msj == NULL){
 		perror("Error, solicitud de memoria denegada.\n");
 		exit(9);
 	}
-	sscanf(*msj, " %d %s ", &salidaf, buffer);
-	strcpy(*msj, *msj+3);
-	if(!strlen(*msj)) {
+	sscanf(*msjLeido, " %d %s ", &salidafinal, msj);
+	strcpy(*msjLeido, *msjLeido+3);
+	if(!strlen(*msjLeido)) {
 		free(aux);
-		*msj = NULL;
+		*msjLeido = NULL;
 	}
-	free(buffer);
-	return salidaf;
+	free(msj);
+	return salidafinal;
 }
 
 
