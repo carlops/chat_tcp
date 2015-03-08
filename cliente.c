@@ -92,8 +92,8 @@ int main(int argc, char *argv[]) {
 	char *puerto = obtenerParametro("-p",argv,argc);
 	char *puerto_local = obtenerParametro("-l",argv,argc);
 
-	if ((argc%2!=1)||(argc>7)||!host||!puerto){
-		perror("Parámetros inválidos.");
+	if(((argc!=7)||!host||!puerto||!puerto_local)&&((argc!=5)||!host||!puerto)){
+		perror("Parámetros inválidos.\n");
 		printf("Ingrese: scs_cli -d <nombre_módulo_atención> -p ");
 		printf("<puerto_scs_svr> [-l <puerto_local>]\n");
 		exit(1);
