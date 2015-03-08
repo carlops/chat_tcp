@@ -329,7 +329,7 @@ elim_sala(Lista_salas *L, char *string){
 }
 
 // Funcion para eliminar un socket de una lista de sockets
-elim_usuario(Lista_sockets*L, int *n){
+elim_socket(Lista_sockets*L, int *n){
 	Lista_sockets *temp = L;
 	Lista_sockets *temp_T;
 	
@@ -354,10 +354,78 @@ elim_usuario(Lista_sockets*L, int *n){
 	return
 }
 
+// Funcion para agregar un usuario a una tabla de hash
+agregarUsuario(Tabla_Hash_Us t, usuario *user){
+	int k;
+	k = hash(user->nombre,TAM);
+	return  agregar_usuario(t.T[k],user);
+}
 
+// Funcion para agregar una sala a una tabla de hash
+agregarSala(Tabla_Hash_Sa t, sala *room){
+	int k;
+	k = hash(room->nombre,TAM);
+	return  agregar_sala(t.T[k],room);
+}
 
+// Funcion para agregar un socket a una tabla de hash
+agregarSocket(Tabla_Hash_So t, socket *sock){
+	int k;
+	char string[50];
+	sprintf(string,"%d",&(sock->socket));
+	k = hash(string,TAM);
+	return  agregar_socket(t.T[k],sock);
+}
 
+// Funcion para eliminar un usuario de una tabla de hash
+eliminarUsuario(Tabla_Hash_Us t, char *string){
+	int k;
+	k = hash(string,TAM);
+	elim_usuario(t.T[k],string);
+}
 
+// Funcion para eliminar una sala de una tabla de hash
+eliminarSala(Tabla_Hash_Sa t, char *string){
+	int k;
+	k = hash(string,TAM);
+	elim_sala(t.T[k],string);
+}
+
+// Funcion para eliminar un socket de una tabla de hash
+eliminarSocket(Tabla_Hash_So t, int * n){
+	int k;
+	char string[50];
+	sprintf(string,"%d",n));
+	k = hash(string,TAM);
+	elim_socket(t.T[k],n);
+}
+
+// Funcion para inicializar tabla de hash
+inicializar_tablas(void *t, int c){
+	// cambiar a switch
+	int i=0;
+	if (c == '0'){
+		tabla_usuarios *T;
+		T = (tabla_usuarios *) t;
+		for (i;i<TAM;i++){
+			ini_usuario(T.T[i]);
+		}
+	}
+	else if (c == '1'){
+		tabla_salas *T;
+		T = (tabla_salas *) t;
+		for (i;i<TAM;i++){
+			ini_sala(T.T[i]);
+		}
+	}
+	else {
+		tabla_sockets *T;
+		T = (tabla_sockets *) t;
+		for (i;i<TAM;i++){
+			ini_socket(T.T[i]);
+		}
+	}
+}
 
 
 
