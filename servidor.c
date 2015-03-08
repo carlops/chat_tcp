@@ -49,6 +49,23 @@ struct Usuario {
 typedef struct Usuario infoUsr;
 
 
+/* VARIABLES */
+/*
+    	- totalUsr: 	Cantidad de usuarios.
+    	- totalSalas:	Cantidad de salas.
+    	- losUsuarios:	Arreglo de usuarios.
+    	- salas:		Arreglo de salas.
+    	- tamMaxSala:	Número máximo de salas.
+    	- tamMaxUsr:	Número máximo de ususarios.
+    */
+int totalUsr, totalSalas, tamMaxSala, tamMaxUsr;
+Usuario **losUsuarios;
+char **salas;
+
+pthread_mutex_t mutexsala  = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexusr  = PTHREAD_MUTEX_INITIALIZER;
+
+
 /* METODOS Y FUNCIONES */
 
 /*
@@ -194,22 +211,6 @@ void *hiloServidor(void *arg) {
 }
 
 
-/* VARIABLES */
-/*
-    	- totalUsr: 	Cantidad de usuarios.
-    	- totalSalas:	Cantidad de salas.
-    	- losUsuarios:	Arreglo de usuarios.
-    	- salas:		Arreglo de salas.
-    	- tamMaxSala:	Número máximo de salas.
-    	- tamMaxUsr:	Número máximo de ususarios.
-    */
-int totalUsr, totalSalas, tamMaxSala, tamMaxUsr;
-Usuario **losUsuarios;
-char **salas;
-
-pthread_mutex_t mutexsala  = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutexusr  = PTHREAD_MUTEX_INITIALIZER;
-
 
 /* MAIN PRINCIPAL */
 int main(int argc, char *argv[]) {
@@ -347,38 +348,38 @@ int main(int argc, char *argv[]) {
 }
 
 
-void eliminarUsuario() {
+// void eliminarUsuario() {
 
-}
+// }
 
-void crearSala(){
-		//ver si ya existe
+// void crearSala(){
+// 		//ver si ya existe
 
-		//agregar a saladb
-}
+// 		//agregar a saladb
+// }
 
-void eliminarSala(){
-		//expulsar usuarios activos en la sala
+// void eliminarSala(){
+// 		//expulsar usuarios activos en la sala
 
-		//eliminar de saladb
-}
+// 		//eliminar de saladb
+// }
 
-void verSala(){
+// void verSala(){
 
-}
+// }
 
-void verUsuarios(){
+// void verUsuarios(){
 
-}
+// }
 
-void habilitarSala(){
+// void habilitarSala(){
 
-}
+// }
 
-void deshabilitarSala(){
+// void deshabilitarSala(){
 
-}
+// }
 
-void verBitacora(){
+// void verBitacora(){
 
-}
+// }
