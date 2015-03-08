@@ -13,7 +13,7 @@ servidor:
 
 cliente: 
 
-		$(CC) $(CFLAGS) -o scs_cli $(OBJCli)
+		$(CC) $(CFLAGS) $(CHFLAGS) -o scs_cli $(OBJCli)
 
 all: 
 		

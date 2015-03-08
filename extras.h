@@ -27,7 +27,9 @@
 */
 extern char *obtenerParametro(char *flag,char *argv[], int argc);
 
+extern void escribir_socket(int fd,char* buffer);
 
+extern void leer_socket(int fd,char** buffer);
 
 /*
 void Herror(char *er){
