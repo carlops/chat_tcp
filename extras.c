@@ -125,7 +125,7 @@ void leerSocket(int s,char** msj){
 */
 int verificar(char** msjLeido){
 	int salidafinal = 42;
-	char *aux = *msjLeido;
+	char *i = *msjLeido;
 	char*  msj = (char *) malloc(sizeof(char)* strlen(*msjLeido));
 	if (msj == NULL){
 		perror("Error, solicitud de memoria denegada.\n");
@@ -134,7 +134,7 @@ int verificar(char** msjLeido){
 	sscanf(*msjLeido, " %d %s ", &salidafinal, msj);
 	strcpy(*msjLeido, *msjLeido+3);
 	if(!strlen(*msjLeido)) {
-		free(aux);
+		free(i);
 		*msjLeido = NULL;
 	}
 	free(msj);

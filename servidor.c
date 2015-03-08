@@ -1,41 +1,59 @@
 /*
- * Servidor
- * compilar con: (-g es opcional para debuggear)
- * gcc -pthread -g -o scs_svr servidor.c extras.c
+ *	Proyecto: Sistema de Chat Simple (SCS)
+ *	
+ * 	Módulo del Servidor
+ *	servidor.c
  *
- * Se corre asi:
- * scs_svr -l <puerto-servidor(local)> -b <archivo_bitácora>
+ *	Descripción:	Este módulo contiene todos los procedimientos relacionados 
+ * 					al Servidor en la conexión a través de sockets.
+ *
+ *	Compilar con: make servidor
+ *
+ *	Correr: scs_svr -l <puerto-servidor(local)> -b <archivo_bitácora>
+ *
+ * 	Fecha:	11/03/2015
+ *
+ *	Autores:	09-10329 María Gabriela Giménez
+ *				09-10672 Carlo Polisano
+ *				09-10971 Alejandro Guevara
+ *				10-10534 Jesús Adolfo Parra
  *
  */
 
-#define PSOCK_ADDR (struct sockaddr *)
-#define TIMEFORMAT "%d/%m/%y-%I:%M:%S : "
-#define EXTRA_ARREGLO 10
 
+
+/* LIBRERIAS */
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include "extras.h"
+#include <signal.h>
 #include <time.h>
+#include "extras.h"
 
-/* Variables Globales */
-int cantusr, cantsalas, maxindexsala, maxindexusr;
-Usuario **arrayusr;
-char **salas;
-pthread_mutex_t mutexsala  = PTHREAD_MUTEX_INITIALIZER;
-pthread_mutex_t mutexusr  = PTHREAD_MUTEX_INITIALIZER;
 
-char *get_time(){
-    time_t t;
-    char *tiempo;
-    struct tm * timeinfo;
+/* CONSTANTES */
+#define TIMEFORMAT "%d/%m/%y-%I:%M:%S : "
+#define MAXTAM 10
 
-    tiempo=(char *) malloc(sizeof(char)*25);
+
+/*
+	Nombre: obtenerFechaHora
+	Descripción: Se encarga de buscar la fecha y hora actual.
+	Retorna: String con la fecha y hora.
+*/
+char *obtenerFechaHora(){
+    char *tiempo = (char *) malloc(sizeof(char)*25);
+    if (tiempo == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(1);
+	}
+
+	time_t t;
     time(&t);
-    timeinfo = localtime(&t);
-    strftime(tiempo,25,TIMEFORMAT,timeinfo);
+    struct Tiempo *timeInfo = localtime(&t);
+    strftime(tiempo,25,TIMEFORMAT,timeInfo);
     return tiempo;
 }
 
@@ -56,103 +74,157 @@ struct lista{
     struct userdb *sig;
 };
 
-int main(int argc, char *argv[]) {
-    
-    struct sockaddr_in my_addr, client_addr; 
-	int listenfd, e, client_size, newfd, n;
-    pthread_t hilo;
-    struct infoUsr *arg;
-	FILE *fd;
-    char *tiempo;
-    struct lista userdb;  
 
+/* VARIABLES */
+int cantusr, cantsalas, maxindexsala, maxindexusr;
+Usuario **arrayusr;
+char **salas;
+pthread_mutex_t mutexsala  = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutexusr  = PTHREAD_MUTEX_INITIALIZER;
+
+
+/* MAIN PRINCIPAL */
+int main(int argc, char *argv[]) {
+	
+	/* Obtención de parámetros.
+		Se obtiene los parámetros por consola y se almacena el puerto del 
+		Servidor y el nombre y dirección absoluta o relativa de archivo de
+		texto que realiza operaciones de bitácora.
+	*/
     char *puerto = obtenerParametro("-l",argv,argc);
 	char *bitacora = obtenerParametro("-b",argv,argc);
+
     if ((argc!=5)||!bitacora||!puerto)
-        {perror("Parametros invalidos"); exit(-1);}
-   
+        perror("Parámetros inválidos.\n");
+		printf("Ingrese: scs_svr -l <puerto-servidor(local)> -b ");
+		printf("<archivo_bitácora> \n");
+		exit(1);
+
+   	/* Se abre el archivo de la bitácora. */
+   	FILE *fd;
     fd = fopen(bitacora,"a");
-    if (fd==NULL){
-		   	perror("Error abriendo bitacora");
-			exit(1);
+    if (fd == NULL){
+	   	perror("Error abriendo la bitácora.\n");
+		exit(2);
 	}
 
-    // Inicializacion Socket
-    listenfd = socket(AF_INET,SOCK_STREAM,0);	
-    if (listenfd== -1){
-		   	perror("Error abriendo socket");
-			exit(2);
+	/*
+		- s: 			Socket de conexión del Servidor.
+   	    - my_addr:		Dirección local del Servidor.
+   	    - client_addr:	
+   */
+   	int s;
+	struct sockaddr_in my_addr;
+	struct sockaddr_in client_addr;
+
+    /* Creación del socket.
+		El dominio es AF_INET, que representa IPv4.
+	   	El tipo es SOCK_STREAM, que indica el servicio fiable orientado a la 
+	   	conexión.
+	   	El protocolo es TCP, que se indica con 0.
+	*/
+    s = socket(AF_INET,SOCK_STREAM,0);	
+    if (s < 0){
+	   	perror("Error creando el socket del Servidor.\n");
+		exit(3);
 	}
-    
+
+	/* Asignación de la dirección al socket.
+	   Se usa AF_INET para indicar la version IPv4.
+	   La dirección IP local se obtiene con INADDR_ANY.
+	   Y se le asigna el puerto local.
+	*/
     bzero(&my_addr,sizeof(my_addr));
 	my_addr.sin_family = AF_INET;
 	my_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
     my_addr.sin_port = htons(atoi(puerto));
-    e = bind(listenfd,PSOCK_ADDR &my_addr, sizeof(my_addr));
-    if (e!=0){
-		   	perror("Error enlazando el socket");
-			exit(3);
-	}
-    e = listen(listenfd,1024);
-    if (e==-1){
-		   	perror("Error escuchando el socket");
-			exit(4);
-	}
 
-    tiempo = get_time();
-    fprintf(fd,"%sSocket abierto en el puerto %s y esperando conexion..\n",tiempo,puerto);
-    printf("%sSocket abierto en el puerto %s y esperando conexion..\n",tiempo,puerto);
+    /* Asignación de la dirección al socket creado. */
+    if ((bind(s, (struct sockaddr *) &my_addr, sizeof(my_addr))) < 0){
+    	perror("Error creando el bind el Servidor.\n");
+		exit(4);
+    }
 
-    //Aqui se inicializan las variables globales como cantidad de salas de chats,de usuarios activos, etc
+    /* Comienza a escuchar esperando peticiones del Cliente.
+    	Puede escuchar hasta un máximo de 1024.
+     */
+    if ((listen(s,1024)) < 0){
+    	perror("Error escuchando el socket.\n");
+		exit(5);	
+    }
+
+    /* Se obtiene la fecha y hora.
+    	Y se indica tanto en la bitácora como en la pantalla del Servidor.
+    */
+    char *tiempo = obtenerFechaHora;
+    fprintf(fd,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
+    printf("%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
+
+    /*
+    	- cantusr:
+    	- cantsalas:
+    	- arrayusr:
+    	- salas:
+    	- maxindexsala:
+    	- maxindexusr:
+    */
 	cantusr = 0;
 	cantsalas = 1;
 	arrayusr = (infoUsr **) malloc(sizeof(infoUsr *));
-	if(arrayusr==NULL){
-		   	perror("Error en solicitud de memoria");
-			exit(12);
+	if (arrayusr == NULL){
+	   	perror("Error, solicitud de memoria denegada.\n");
+		exit(6);
 	}
 	salas = (char **) malloc(sizeof(char *));
-	if(salas==NULL) {
-			perror("Error en solicitud de memoria");
-			exit(13);
+	if (salas == NULL) {
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(7);
 	}
-	maxindexsala = EXTRA_ARREGLO;
-	maxindexusr = EXTRA_ARREGLO;
-	salas[0] = "Sala01";
+	maxindexsala = MAXTAM;
+	maxindexusr = MAXTAM;
+	salas[0] = "SALA_1";
 	free(puerto);
-	//signal(SIGINT, salidaForzadaServidor);	
 
+	/* En caso de haber recibido una señal de salida forzada (cntrl + c) */
+	//signal(SIGINT, salidaForzada);	
+
+
+    //pthread_t hilo;
+    //struct infoUsr *arg;
+    //struct lista userdb
+
+    int client_size, newfd, n;
 
 	//Espera por clientes
-	while(1) {
-			client_size= sizeof(client_addr);
-			newfd = accept(listenfd,PSOCK_ADDR &client_addr,&client_size);
-			if (newfd<0) {
-					perror("No se pudo establecer la coneccion");
-					exit(5);
-			}
-			tiempo = get_time();
-			fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
-			printf("%sNuevo usuario conectado al servidor\n",tiempo);
+	while(42) {
+		client_size = sizeof(client_addr);
+		newfd = accept(s,PSOCK_ADDR &client_addr,&client_size);
+		if (newfd<0) {
+				perror("No se pudo establecer la coneccion");
+				exit(5);
+		}
+		tiempo = obtenerFechaHora();
+		fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
+		printf("%sNuevo usuario conectado al servidor\n",tiempo);
 
-			if (!(arg=(struct infoUsr*) malloc(sizeof(struct infoUsr)))){
-					perror("Error en asignacion de memoria");
-					exit(6);
-			}
-		//	arg->id=0;
-			arg->fd=newfd;
-			//conectarse
-			//login();
-		//	char username[100];
-		//	n = recv(newfd,username,100,0);
-			//buscar en userdb   
+		if (!(arg=(struct infoUsr*) malloc(sizeof(struct infoUsr)))){
+				perror("Error en asignacion de memoria");
+				exit(6);
+		}
+	//	arg->id=0;
+		arg->fd=newfd;
+		//conectarse
+		//login();
+	//	char username[100];
+	//	n = recv(newfd,username,100,0);
+		//buscar en userdb   
 
 
-			if (pthread_create(&(arg->id),NULL,&manejadorHilo,(void *) arg)){
-					perror("Error en la creacion del hilo");
-					exit(7);
-			}
-			//close(newfd);
+		if (pthread_create(&(arg->id),NULL,&manejadorHilo,(void *) arg)){
+				perror("Error en la creacion del hilo");
+				exit(7);
+		}
+		//close(newfd);
 	} 
 
 }

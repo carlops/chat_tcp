@@ -61,8 +61,8 @@ void salidaForzada(){
  */
 void *hiloUsuario(void *arg){
 	char *msj;
-	int *aux = (int *) arg;
-	int s = *aux, idfd = *aux, servidorActivo = 42;
+	int *i = (int *) arg;
+	int s = *i, idfd = *i, servidorActivo = 42;
 
 	while(42){
 		leerSocket(s, &msj);
@@ -100,18 +100,18 @@ int main(int argc, char *argv[]) {
 	}
 
 	/*
-		- s: 		Socket de conexión del CLiente.
+		- s: 		Socket de conexión del Cliente.
 		- local: 	Dirección local del Clinete.
 		- serv: 	Dirección del Servidor.
 		- servidor: Utilizado para obtener el la dirección del Servidor.
-		- inaddr:	Utilizado cuando se suministra el dominio como dirección
+		- IPDir:	Utilizado cuando se suministra el dominio como dirección
 					IP.
 	*/
 	int s;
 	struct sockaddr_in local;
 	struct sockaddr_in serv;
 	struct hostent *servidor;
-	struct in_addr inaddr;
+	struct in_addr IPDir;
 
 	/* Creación del socket.
 	   El dominio es AF_INET, que representa IPv4.
@@ -160,8 +160,8 @@ int main(int argc, char *argv[]) {
 	   Se copia el host en el struct del Servidor.
 	   Se indica el puerto por donde se escuchará al Servidor.
 	*/
-	if (inet_aton(host,&inaddr))
-		servidor = gethostbyaddr((char *) &inaddr, sizeof(inaddr), AF_INET);
+	if (inet_aton(host,&IPDir))
+		servidor = gethostbyaddr((char *) &IPDir, sizeof(IPDir), AF_INET);
 	else
 		servidor = gethostbyname(host);
 	if (servidor == NULL) {
