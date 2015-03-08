@@ -29,11 +29,11 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <pthread.h>
-#include <string.h>
-#include <arpa/inet.h>
 #include <netdb.h>
-#include <unistd.h>
 #include "extras.h"
+#include <time.h>
+#include <getopt.h>
+#include <string.h>
 
 
 /* Variables */
@@ -44,9 +44,12 @@ int idfd;
 /* MAIN PRINCIPAL */
 int main(int argc, char *argv[]) {
 
-	char *host = obtenerParametro("-d",argv,argc);
+	char *host ;
+	host = obtenerParametro("-d",argv,argc);
 	char *puerto = obtenerParametro("-p",argv,argc);
 	char *puerto_local = obtenerParametro("-l",argv,argc);
+	msj_cli *mensaje;
+	char texto[500] = "ESCRIBA AQUI SU MENSAJE";
 
 	if ((argc%2!=1)||(argc>7)||!host||!puerto){
 		perror("Parametros invalidos.");
@@ -113,7 +116,7 @@ int main(int argc, char *argv[]) {
 		Se indica el puerto por donde se escuchara al servidor.
 	 */
 	if (inet_aton(host,&inaddr))
-			servidor = gethostbyaddr((char *) &inaddr, sizeof(inaddr), AF_INET);
+			servidor = gethostbyaddr(&inaddr, sizeof(inaddr), AF_INET);
 	else
 			servidor = gethostbyname(host);
 	if (servidor == NULL) {
@@ -122,7 +125,7 @@ int main(int argc, char *argv[]) {
 	}
 	bzero(&serv,sizeof(serv));
 	serv.sin_family = AF_INET;
-	memcpy(&serv.sin_addr, servidor->h_addr_list[0], servidor->h_length);
+	memcpy(&serv.sin_addr, servidor->h_addr, servidor->h_length);
 	serv.sin_port = htons(atoi(puerto));
 
 	/* Conectando con el Servidor. */
@@ -139,11 +142,17 @@ int main(int argc, char *argv[]) {
 	printf("Introduzca su nombre de usuario:\n");
 	char usuario[50];
 	scanf("%s",usuario);
+	
+	mensaje = malloc(sizeof(msj_cli));
+	mensaje->cmd ='1';
+	strcpy(mensaje->tiempo,"La 1");
+	strcpy(mensaje->usuario,"adolfo");
+	strcpy(mensaje->mensaje,texto);
 
-	//if (write(s, DATOS, sizeof DATOS)<0) {
-	//		perror("escribiendo el socket:");
-	//		exit(3);
-	//}
+	if (write(s, mensaje, sizeof (*mensaje))<0) {
+			perror("escribiendo el socket:");
+			exit(3);
+	}
 
 
 	/* Se termina la conexion y se cierra el socket para terminar. */

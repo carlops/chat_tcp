@@ -27,7 +27,26 @@
 */
 extern char *obtenerParametro(char *flag,char *argv[], int argc);
 
+// Struct para los mensajes del cliente al servidor
+struct mensaje_cliente {
+	char cmd;
+	char tiempo[20];
+	char usuario[50];
+	char mensaje[500];
+};
 
+// Struct para los mensajes del servidor al cliente
+struct mensaje_servidor {
+	char cmd;
+	char tiempo[20];
+	char usuario[50];
+	char ack;
+	char mensaje[500];
+};
+
+// Alias para los mensajes
+typedef struct mensaje_cliente msj_cli;
+typedef struct mensaje_servidor msj_srv;
 
 /*
 void Herror(char *er){

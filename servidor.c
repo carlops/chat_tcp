@@ -34,27 +34,6 @@ int hash(char *string, int tam) {
 	return (c % tam);	
 }
 
-// Struct para los mensajes del cliente al servidor
-struct mensaje_cliente {
-	char cmd;
-	char *tiempo;
-	char *usuario;
-	char mensaje[500];
-};
-
-// Struct para los mensajes del servidor al cliente
-struct mensaje_servidor {
-	char cmd;
-	char *tiempo;
-	char *usuario;
-	char ack;
-	char mensaje[500];
-};
-
-// Alias para los mensajes
-typedef struct mensaje_cliente msj_cli;
-typedef struct mensaje_servidor msj_srv;
-
 // Struct para los usuarios
 struct user {
 	char *nombre;
@@ -501,23 +480,62 @@ inicializar_tablas(void *t, int c){
 }
 
 
+	
+// Mutex
+pthread_mutex_t mutex_sockets = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_usuarios = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_salas = PTHREAD_MUTEX_INITIALIZER;
+
+	
+	Tabla_Hash_Sa tabla_de_salas;
+	Tabla_Hash_So tabla_de_sockets;
+	Tabla_Hash_Us tabla_de_usuarios;
+
+
+
+void *Hilo_cliente(void *arg) {
+   int *sock = (int *) arg;
+   int res;
+   msj_cli *recibido;
+   
+   socket_s *socket;
+   socket = malloc(sizeof(socket_s));
+   socket->socket = *sock;
+   socket->nombre = NULL;
+   
+   pthread_mutex_lock(&mutex_sockets);
+   agregarSocket(tabla_de_sockets,socket);
+   pthread_mutex_unlock(&mutex_sockets);
+   
+   recibido=malloc(sizeof(msj_cli)) ;
+		res = read(*sock,recibido,sizeof(*recibido));
+		if (res){
+			printf("Hemos recibido algo de un cliente:\n");
+			printf("cmd : %c, tiempo: %s, usuario: %s\n",recibido->cmd,recibido->tiempo,recibido->usuario);
+			printf("mensaje: %s\n",recibido->mensaje);
+			
+		}
+   close(*sock);
+   pthread_exit(NULL);
+   
+}
 
 
 
 
 
 
-// char *get_time(){
-//     time_t t;
-//     char *tiempo;
-//     struct tm * timeinfo;
-// 
-//     tiempo=(char *) malloc(sizeof(char)*25);
-//     time(&t);
-//     timeinfo = localtime(&t);
-//     strftime(tiempo,25,TIMEFORMAT,timeinfo);
-//     return tiempo;
-// }
+char *get_time(){
+    time_t t;
+    char *tiempo;
+    struct tm * timeinfo;
+
+    tiempo=(char *) malloc(sizeof(char)*25);
+    time(&t);
+    timeinfo = localtime(&t);
+    strftime(tiempo,25,TIMEFORMAT,timeinfo);
+    return tiempo;
+}
 // 
 // void *manejadorHilo(void *arg); 
 // 
@@ -536,124 +554,98 @@ inicializar_tablas(void *t, int c){
 int main(int argc, char *argv[]) {
     
     struct sockaddr_in my_addr, client_addr; 
-	int listenfd, e, client_size, newfd, n;
-//     pthread_t hilo;
-//     struct infoUsr *arg;
-// 	FILE *fd;
-//     char *tiempo;
-//     struct lista userdb;  
+	int sock_maestro, resultado, client_size, n;
+	int *sock_cliente;
+    pthread_t hilo;
+	FILE *fd;
+    char *tiempo;
+
+	
+	inicializar_tablas(&tabla_de_usuarios,'0');
+	inicializar_tablas(&tabla_de_salas,'1');
+	inicializar_tablas(&tabla_de_sockets,'2');
+	
 	int c;
 	char *puerto;
 	char *bitacora;
+	msj_cli *recibido;
+
 	
-	usuario *us;
-	usuario *ad;
-	Lista_usuarios lista;
-	
+	puerto = NULL;
+	bitacora = NULL;
 
 	while ((c = getopt(argc,argv,"l:b:")) != -1 ){
 		switch(c){
 			case 'l':
 				puerto = optarg;
-				printf("hola1\n");
 				break;
 			case 'b' :
 				bitacora = optarg;
-				printf("hola2 abriendo bitacora\n");
 				break;
 			default:
 				printf("parametro desconocido\n");
 				exit(-1);
 		}
 	}	
-   /*
+   
+	if (bitacora == NULL){
+		printf("Se necesita una bitacora para el funcionamiento del servidor\n");
+		printf("Ejecute nuevamente el comando indicandole el archivo de la");
+		printf(" bitacora\n");
+		exit(-1);
+	}
+	if (puerto == NULL){
+		printf("Se necesita un puerto para el funcionamiento del servidor\n");
+		printf("Ejecute nuevamente el comando indicandole el puerto\n");
+		exit(-1);
+	}
     fd = fopen(bitacora,"a");
-    if (fd==NULL) perror("abriendo bitacora");*/
+    if (fd==NULL) perror("abriendo bitacora");
+
+    // Inicializacion Socket
+    sock_maestro = socket(AF_INET,SOCK_STREAM,0);	
+    if (sock_maestro== -1) perror("socket(init)");
+    
+    bzero(&my_addr,sizeof(my_addr));
+	my_addr.sin_family = AF_INET;
+	my_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
+    my_addr.sin_port = htons(atoi(puerto));
 	
-	lista.sig=NULL;
-	us = malloc(sizeof(usuario));
-	us->nombre="adolfo";
-	us->socket=25;
-	us->sala="cuarto de adolfo";
-	lista.user = us;
+    resultado = bind(sock_maestro,PSOCK_ADDR &my_addr, sizeof(my_addr));
+    if (resultado == -1) perror("bind");
+
+    resultado = listen(sock_maestro,1024);
+    if (resultado == -1) perror("listen");
+
+    tiempo = get_time();
+    fprintf(fd,"%sSocket abierto en el puerto %s y esperando conexion..\n",tiempo,puerto);
+    printf("%sSocket abierto en el puerto %s y esperando conexion..\n",tiempo,puerto);
+
+    //Aqui se inicializan las variables globales como cantidad de salas de chats,de usuarios activos, etc
+    
 	
-	ad = buscar_usuario_lista(lista,"adolfo2");
-	if (ad)
-		printf("se encontro al usuario: %s\n",ad->nombre);
-	else
-		printf("NO\n");
-	
-	
-    exit(0);
-//     // Inicializacion Socket
-//     listenfd = socket(AF_INET,SOCK_STREAM,0);	
-//     if (listenfd== -1) perror("socket(init)");
-//     
-//     bzero(&my_addr,sizeof(my_addr));
-// 	my_addr.sin_family = AF_INET;
-// 	my_addr.sin_addr.s_addr = htonl(INADDR_ANY); 
-//     my_addr.sin_port = htons(atoi(puerto));
-//     e = bind(listenfd,PSOCK_ADDR &my_addr, sizeof(my_addr));
-//     if (e==-1) perror("bind");
-// 
-//     e = listen(listenfd,1024);
-//     if (e==-1) perror("listen");
-// 
-//     tiempo = get_time();
-//     fprintf(fd,"%sSocket abierto en el puerto %s y esperando conexion..\n",tiempo,puerto);
-//     printf("%sSocket abierto en el puerto %s y esperando conexion..\n",tiempo,puerto);
-// 
-//     //Aqui se inicializan las variables globales como cantidad de salas de chats,de usuarios activos, etc
-//     
-// 
-// 
-//     //Espera por clientes
-//     while(1) {
-//         client_size= sizeof(client_addr);
-//         newfd = accept(listenfd,PSOCK_ADDR &client_addr,&client_size);
-//         tiempo = get_time();
-//         fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
-//         printf("%sNuevo usuario conectado al servidor\n",tiempo);
-// 
-//         if (!(arg=(struct infoUsr*) malloc(sizeof(struct infoUsr))))
-//             perror("asignacion memoria");
-//         arg->id=0;
-//         arg->fd=newfd;
-//         //conectarse
-//         //login();
-//         char username[100];
-//         n = recv(newfd,username,100,0);
-//         //buscar en userdb   
-//         
-// 
-//         if (pthread_create(&hilo,NULL,&manejadorHilo,(void *) arg))
-//             perror("creacion hilo");
-//         
-//         //close(newfd);
-//     } 
-// 
-// }
-// 
-// void *manejadorHilo(void *arg) {
-//     int n;
-//     char msg[1000];
-//     struct infoUsr *usr= (struct infoUsr *) arg;
-//     //usr->id=pthreadself();
-//     send(usr->fd,"user:",sizeof(char)*5,0);
-//     n = recv(usr->fd,msg,1000,0);
-//     char *resp=malloc(sizeof(char)*(strlen(msg)+11));
-//     strcpy(resp,"Recibido: ");
-//     strcat(resp,msg);
-//     send(usr->fd,resp,sizeof(char)*(strlen(msg)+11),0);
-//     while (1) {
-//         n = recv(usr->fd,msg,1000,0);
-//         printf("-------------------------------------------------------\n");
-//         msg[n] = 0;
-//         printf("Received the following:\n");
-//         printf("%s",msg);
-//         printf("-------------------------------------------------------\n");
-//     }
-// }
+
+    //Espera por clientes
+    while(1) {
+		sock_cliente  = malloc(sizeof(int));
+        client_size= sizeof(client_addr);
+        *sock_cliente = accept(sock_maestro,PSOCK_ADDR &client_addr,&client_size);
+        tiempo = get_time();
+        fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
+        printf("%sNuevo usuario conectado al servidor\n",tiempo);
+		fflush(fd);
+		resultado = pthread_create(&hilo,NULL, &Hilo_cliente,(void *) sock_cliente);
+		if (resultado == 0){
+			printf("Creacion correcta de un hilo\n");}
+		sock_cliente = NULL;
+    } 
+		
+		
+		close(sock_maestro);
+		fclose(fd);
+		exit(0);
+}
+
 // 
 // void crearUsuario() {
 // //ver si ya existe
@@ -696,4 +688,4 @@ int main(int argc, char *argv[]) {
 // 
 // void verBitacora(){
 // 
-}
+
