@@ -536,20 +536,7 @@ char *get_time(){
     strftime(tiempo,25,TIMEFORMAT,timeinfo);
     return tiempo;
 }
-// 
-// void *manejadorHilo(void *arg); 
-// 
-// struct infoUsr {
-//     pthread_t id;
-//     int fd;
-//     void *salas;//falta el tipo
-// 
-// };
-// 
-// struct lista{
-//     char name[50];
-//     struct userdb *sig;
-// };
+
 
 int main(int argc, char *argv[]) {
     
