@@ -701,7 +701,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Comienza a escuchar esperando peticiones del Cliente.
-       Puede escuchar hasta un máximo de 1024.
+        Puede escuchar hasta un máximo de 1024.
    	*/
     if ((listen(s,1024)) < 0){
         perror("Error escuchando el socket.\n");
@@ -709,7 +709,7 @@ int main(int argc, char *argv[]) {
     }
 
     /* Se obtiene la fecha y hora.
-       Y se indica tanto en la bitácora como en la pantalla del Servidor.
+        Y se indica tanto en la bitácora como en la pantalla del Servidor.
    	*/
     char *tiempo = obtenerFechaHora();
     fprintf(fd,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
