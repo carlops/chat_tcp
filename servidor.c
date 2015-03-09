@@ -44,6 +44,8 @@
 struct Usuario {
     pthread_t id;
     int fd;
+    int totalSalas;
+    int tamMaxSala;
     char *nombre;
     int posarray;
     char **salas;//falta el tipo
@@ -145,8 +147,8 @@ void crearUsuario(infoUsr *usr) {
         exit(5);
     }
     strcpy(usr->salas[0], salas[0]);
-    //usr->totalSalas = 1;
-    //usr->tamMaxSala = MAXTAM;
+    usr->totalSalas = 1;
+    usr->tamMaxSala = MAXTAM;
 
     if (totalUsr < tamMaxUsr){
         losUsuarios[totalUsr]= usr;
@@ -172,56 +174,18 @@ void crearUsuario(infoUsr *usr) {
     pthread_mutex_unlock(&mutexusr);
 }
 
-
-
-/*
-	Nombre: hiloServidor
-	Descripción: Se encarga de llamar el hilo del servidor para así esperar
-					las peticiones de un único cliente asignado.
-	Parámetros:	- arg: Apuntador a un usuario para cumplir sus requerimientos
-						en la llamada a un hilo.
-*/
-void *hiloServidor(void *arg) {
-    infoUsr *usr = (infoUsr *) arg;
-    pthread_t id = (*usr).id;
-    crearUsuario(usr);
-    char* buffer;
-    char** sep; 
-    int ok = 0;
-
-    /* Espera por el input del cliente.*/
-    while (1){
-        leerSocket((*usr).fd,  &buffer);
-        if(buffer == NULL) continue;
-        sep = separar(buffer);
-        free(buffer);
-        //ejecutar_peticion((*usr).posarray,sep);
-        if(!strcmp(sep[0],"fue")) break;
-        free(sep[0]);
-        free(sep);
-    }
-
-    free(sep[0]);
-    free(sep);
-    pthread_cancel(id);
-    if(ok != 0) {
-        perror("Error, no se pudo cancelar el hilo.");
-        exit(1);
-    }
-}
-
 void eliminar_usuario(int posusr){
 
     int i =0;
 
-    while(i<(*arrayusr[posusr]).cantsalas){
+    while(i<(*losUsuarios[posusr]).totalSalas){
 
-        free((*arrayusr[posusr]).salas[i]);
+        free((*losUsuarios[posusr]).salas[i]);
         i++;
     }
-    free((*arrayusr[posusr]).salas);
-    free((*arrayusr[posusr]).nombre);
-    free(arrayusr[posusr]);
+    free((*losUsuarios[posusr]).salas);
+    free((*losUsuarios[posusr]).nombre);
+    free(losUsuarios[posusr]);
 
 }
 
@@ -236,7 +200,7 @@ void crear_sala(char *sala, int posusr){
 
         error_encontrado = error_handler(5);
         incluir_verificacion(1, &error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         pthread_mutex_unlock(&mutexsala);
         return;
@@ -244,7 +208,7 @@ void crear_sala(char *sala, int posusr){
     }
 
     //Se verifica que la sala a agregar no exista ya
-    while((i<cantsalas)&&(!encontrado)){
+    while((i<totalSalas)&&(!encontrado)){
 
         encontrado= !strcmp(sala,salas[i]);
         i++;
@@ -254,23 +218,23 @@ void crear_sala(char *sala, int posusr){
 
         error_encontrado = error_handler(1);
         incluir_verificacion(1,&error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         free(sala);
         pthread_mutex_unlock(&mutexsala);
         return;
     }
 
-    if(cantsalas<maxindexsala){
+    if(totalSalas<tamMaxSala){
 
-        salas[cantsalas++] = sala;
+        salas[totalSalas++] = sala;
 
     }  else  {
 
         salas = (char **) realloc(salas,sizeof(char *)*
-                (EXTRA_ARREGLO+maxindexsala));
-        maxindexsala += EXTRA_ARREGLO;
-        salas[cantsalas++] = sala;
+                (MAXTAM+tamMaxSala));
+        tamMaxSala += MAXTAM;
+        salas[totalSalas++] = sala;
 
     }    
 
@@ -280,7 +244,7 @@ void crear_sala(char *sala, int posusr){
 
 void suscribir_usuario(int posusr, char* sala){
 
-    nt i =0, encontrado=0;
+    int i =0, encontrado=0;
     char *error_encontrado;    
 
     pthread_mutex_lock(&mutexusr);
@@ -291,7 +255,7 @@ void suscribir_usuario(int posusr, char* sala){
 
         error_encontrado = error_handler(5);
         incluir_verificacion(1, &error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala);
@@ -299,7 +263,7 @@ void suscribir_usuario(int posusr, char* sala){
 
     }
     //Se verifica que la sala deseada exista
-    while((i<cantsalas)&&(!encontrado)){
+    while((i<totalSalas)&&(!encontrado)){
 
         encontrado= !strcmp(sala,salas[i]);
         i++;
@@ -309,7 +273,7 @@ void suscribir_usuario(int posusr, char* sala){
 
         error_encontrado = error_handler(2);
         incluir_verificacion(1,&error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
@@ -321,9 +285,9 @@ void suscribir_usuario(int posusr, char* sala){
     i =0;
     encontrado=0;
     //Se verifica que el usuario no este suscrito ya a esa sala
-    while((i<(*arrayusr[posusr]).cantsalas)&&(!encontrado)){
+    while((i<(*losUsuarios[posusr]).totalSalas)&&(!encontrado)){
 
-        encontrado= !strcmp(sala,(*arrayusr[posusr]).salas[i]);
+        encontrado= !strcmp(sala,(*losUsuarios[posusr]).salas[i]);
         i++;
     }
 
@@ -332,7 +296,7 @@ void suscribir_usuario(int posusr, char* sala){
         char *error_encontrado;
         error_encontrado = error_handler(3);
         incluir_verificacion(1,&error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
@@ -341,16 +305,16 @@ void suscribir_usuario(int posusr, char* sala){
     }
 
 
-    if((*arrayusr[posusr]).cantsalas<(*arrayusr[posusr]).maxindexsala){
+    if((*losUsuarios[posusr]).totalSalas<(*losUsuarios[posusr]).tamMaxSala){
 
-        (*arrayusr[posusr]).salas[(*arrayusr[posusr]).cantsalas++] = sala;
+        (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++] = sala;
 
     }  else  {
-        (*arrayusr[posusr]).salas = (char **) realloc((*arrayusr[posusr]).salas,
-                sizeof(char *)*(EXTRA_ARREGLO +
-                    (*arrayusr[posusr]).maxindexsala));
-        (*arrayusr[posusr]).maxindexsala += EXTRA_ARREGLO;
-        (*arrayusr[posusr]).salas[(*arrayusr[posusr]).cantsalas++] = sala;
+        (*losUsuarios[posusr]).salas = (char **) realloc((*losUsuarios[posusr]).salas,
+                sizeof(char *)*(MAXTAM +
+                    (*losUsuarios[posusr]).tamMaxSala));
+        (*losUsuarios[posusr]).tamMaxSala += MAXTAM;
+        (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++] = sala;
 
     }
 
@@ -374,7 +338,7 @@ void eliminar_sala(char *sala, int posusr){
 
         error_encontrado = error_handler(5);
         incluir_verificacion(1,&error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala); 
@@ -387,7 +351,7 @@ void eliminar_sala(char *sala, int posusr){
 
         error_encontrado = error_handler(4);
         incluir_verificacion(1,&error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
@@ -397,7 +361,7 @@ void eliminar_sala(char *sala, int posusr){
     }
 
     //Se verifica que la sala que se desea eliminar exista
-    while((i<cantsalas)&&(!encontrado)){
+    while((i<totalSalas)&&(!encontrado)){
 
         encontrado= !strcmp(sala,salas[i]);
         i++;
@@ -407,7 +371,7 @@ void eliminar_sala(char *sala, int posusr){
 
         error_encontrado = error_handler(2);
         incluir_verificacion(1,&error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
@@ -419,18 +383,18 @@ void eliminar_sala(char *sala, int posusr){
     //revisar que exista la sala y mutex
     while(strcmp(salas[k],sala)) k++;
 
-    while(i<cantusr){
+    while(i<totalUsr){
 
         j=0;
         borrado=0;
-        tam = (*arrayusr[i]).cantsalas;
+        tam = (*losUsuarios[i]).totalSalas;
         while((j<tam)&&(!borrado)){
 
-            if(!strcmp(sala, (*arrayusr[i]).salas[j])){
+            if(!strcmp(sala, (*losUsuarios[i]).salas[j])){
 
                 borrado = 1;
-                (*arrayusr[i]).cantsalas--;
-                (*arrayusr[i]).salas[j]=(*arrayusr[i]).salas[tam-1];
+                (*losUsuarios[i]).totalSalas--;
+                (*losUsuarios[i]).salas[j]=(*losUsuarios[i]).salas[tam-1];
 
             }
             j++;
@@ -439,8 +403,8 @@ void eliminar_sala(char *sala, int posusr){
     }
     free(sala);
     free(salas[k]);
-    cantsalas--;
-    salas[k]= salas[cantsalas];
+    totalSalas--;
+    salas[k]= salas[totalSalas];
 
     pthread_mutex_unlock(&mutexusr);
     pthread_mutex_unlock(&mutexsala);
@@ -461,13 +425,15 @@ void desuscribir_usuario(int posusr){
 
     pthread_mutex_lock(&mutexusr);
 
-    aux = (*arrayusr[posusr]).salas;
-    (*arrayusr[posusr]).salas = (char **) calloc(sizeof(char *), 
-            EXTRA_ARREGLO);
-    if((*arrayusr[posusr]).salas==NULL) 
-        fatalerror("Solicitud de memoria denegada");
-    (*arrayusr[posusr]).cantsalas = 0;
-    (*arrayusr[posusr]).maxindexsala = EXTRA_ARREGLO;
+    aux = (*losUsuarios[posusr]).salas;
+    (*losUsuarios[posusr]).salas = (char **) calloc(sizeof(char *), 
+            MAXTAM);
+    if((*losUsuarios[posusr]).salas==NULL){ 
+        perror("Solicitud de memoria denegada");
+        exit(20);
+    }
+    (*losUsuarios[posusr]).totalSalas = 0;
+    (*losUsuarios[posusr]).tamMaxSala = MAXTAM;
 
 
     pthread_mutex_unlock(&mutexusr);
@@ -504,7 +470,7 @@ void enviar_mensaje(int posusr, char *mensaje){
 
         error_encontrado = error_handler(5);
         incluir_verificacion(1,&error_encontrado);
-        escribir_socket((*arrayusr[posusr]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
         free(error_encontrado);
         pthread_mutex_unlock(&mutexusr);
         return;
@@ -512,28 +478,30 @@ void enviar_mensaje(int posusr, char *mensaje){
     }
 
 
-    tamlist = (*arrayusr[posusr]).cantsalas;
+    tamlist = (*losUsuarios[posusr]).totalSalas;
 
-    while(i<cantusr){
+    while(i<totalUsr){
         j=0;
         while(j<tamlist){
             k=0;
-            tamlist2 =  (*arrayusr[i]).cantsalas;
+            tamlist2 =  (*losUsuarios[i]).totalSalas;
             while(k<tamlist2){
 
-                if(!strcmp((*arrayusr[posusr]).salas[j], 
-                            (*arrayusr[i]).salas[k])){
+                if(!strcmp((*losUsuarios[posusr]).salas[j], 
+                            (*losUsuarios[i]).salas[k])){
 
-                    buffer = (char *) calloc(sizeof(char *),
-                            EXTRA+strlen((*arrayusr[posusr]).nombre)+
-                            strlen((*arrayusr[posusr]).salas[j])+
+                    buffer = (char *) malloc(sizeof(char *)*
+                            strlen((*losUsuarios[posusr]).nombre)+
+                            strlen((*losUsuarios[posusr]).salas[j])+
                             strlen(mensaje));
-                    if(buffer==NULL)
-                        fatalerror("Solicitud de memoria denegada");
-                    sprintf(buffer,"%s@%s: %s",(*arrayusr[posusr]).nombre,
-                            (*arrayusr[posusr]).salas[j], mensaje);
+                    if(buffer==NULL){
+                        perror("Solicitud de memoria denegada");
+                        exit(19);
+                    }
+                    sprintf(buffer,"%s@%s: %s",(*losUsuarios[posusr]).nombre,
+                            (*losUsuarios[posusr]).salas[j], mensaje);
                     incluir_verificacion(1,&buffer);
-                    escribir_socket((*arrayusr[i]).fd, buffer);
+                    escribirSocket((*losUsuarios[i]).fd, buffer);
                     free(buffer);
                 }
                 k++;
@@ -562,26 +530,89 @@ void salir(int posusr){
     pthread_mutex_lock(&mutexusr);
 
     int k=0, tam=0, borrado=0, ok;
-    char *tmp = (char *) calloc(sizeof(char *), EXTRA);
-    if(tmp==NULL) fatalerror("Solicitud de memoria denegada");
+    char *tmp = (char *) malloc(sizeof(char *));
+    if(tmp==NULL){
+        perror("Solicitud de memoria denegada");
+        exit(18);
+    }
     sprintf(tmp," 1 ");
-    escribir_socket((*arrayusr[posusr]).fd, tmp);
+    escribirSocket((*losUsuarios[posusr]).fd, tmp);
     free(tmp);
-    ok = close((*arrayusr[posusr]).fd);
-    if (ok==-1)
-        fatalerror("No se cerro socket correctamente.");
+    ok = close((*losUsuarios[posusr]).fd);
+    if (ok==-1){
+        perror("No se cerro socket correctamente.");
+        exit(17);
+    }
 
     eliminar_usuario(posusr);
-    cantusr--;
+    totalUsr--;
     k=posusr;
-    while(k<cantusr){
-        arrayusr[k]= arrayusr[k+1];
-        (*arrayusr[k]).posarray--;
+    while(k<totalUsr){
+        losUsuarios[k]= losUsuarios[k+1];
+        (*losUsuarios[k]).posarray--;
         k++;
     }
 
     pthread_mutex_unlock(&mutexusr);
 
+}
+
+/**
+ * Metodo: listar_salas
+ * Descripcion: satisface la ejecucion del comando "sal".
+ * @param posusr posicion en el arreglo de usuarios de quien solicito la ejecucion del
+ *        comando "sal"
+ *        */
+void listar_salas(int posusr){
+
+    pthread_mutex_lock(&mutexsala);
+    int i =0;
+    char* buffer = (char *) malloc(sizeof(char));
+    if(buffer==NULL){
+        perror("Solicitud de memoria denegada");
+        exit(16);
+    }
+    while(i<totalSalas){
+
+        buffer = (char *) realloc(buffer, strlen(buffer) +
+                strlen(salas[i]));
+        sprintf(buffer,"%s\n%s",buffer,salas[i]);
+        i++;
+    }
+    incluir_verificacion(1,&buffer);
+    escribirSocket((*losUsuarios[posusr]).fd, buffer);
+    free(buffer);
+    pthread_mutex_unlock(&mutexsala);
+
+}
+
+/**
+ * Metodo: listar_usuarios
+ * Descripcion: satisface la ejecucion del comando "usu"
+ * @param posusr posicion en el arreglo de usuarios de quien solicito la ejecucion del
+ *        comando "usu"
+ */
+void listar_usuarios(int posusr){
+
+    pthread_mutex_lock(&mutexusr);
+    int i =0;
+    char* buffer = (char *) malloc(sizeof(char));
+    if(buffer==NULL){
+        perror("Solicitud de memoria denegada");
+        exit(15);
+    }
+    while(i<totalUsr){
+
+        buffer = (char *)realloc(buffer, strlen(buffer) +
+                strlen((*losUsuarios[i]).nombre));
+        sprintf(buffer,"%s\n%s",buffer,(*losUsuarios[i]).nombre);
+        i++;
+    }
+    incluir_verificacion(1, &buffer);
+    escribirSocket((*losUsuarios[posusr]).fd, buffer);
+    free(buffer);
+
+    pthread_mutex_unlock(&mutexusr);
 }
 
 /**
@@ -594,19 +625,19 @@ ejecucion de un comando
 del mismo
 */
 void ejecutar_peticion(int pos, char **peticion){
-    if(!strcmp(peticion[0],"sal")){
+    if(!strcmp(peticion[0],"ver_salas")){
 
         listar_salas(pos);
 
-    } else if(!strcmp(peticion[0],"usu")){
+    } else if(!strcmp(peticion[0],"ver_usuarios")){
 
         listar_usuarios(pos);
 
-    } else if(!strcmp(peticion[0],"men")){
+    } else if(!strcmp(peticion[0],"env_mensaje")){
 
         enviar_mensaje(pos, peticion[1]);
 
-    } else if(!strcmp(peticion[0],"sus")){
+    } else if(!strcmp(peticion[0],"entrar")){
 
         suscribir_usuario(pos,peticion[1]);
 
@@ -614,15 +645,15 @@ void ejecutar_peticion(int pos, char **peticion){
 
         desuscribir_usuario(pos);
 
-    } else if(!strcmp(peticion[0],"cre")){
+    } else if(!strcmp(peticion[0],"crear_sala")){
 
         crear_sala(peticion[1], pos);
 
-    } else if(!strcmp(peticion[0],"eli")){
+    } else if(!strcmp(peticion[0],"elim_sala")){
 
         eliminar_sala(peticion[1], pos);
 
-    } else if(!strcmp(peticion[0],"fue")){
+    } else if(!strcmp(peticion[0],"salir")){
 
         salir(pos);
 
@@ -631,10 +662,46 @@ void ejecutar_peticion(int pos, char **peticion){
         char *error_encontrado;
         error_encontrado = error_handler(0);
         incluir_verificacion(1,&error_encontrado);        
-        escribir_socket((*arrayusr[pos]).fd, error_encontrado);
+        escribirSocket((*losUsuarios[pos]).fd, error_encontrado);
         free(error_encontrado);
         if (peticion[1]!=NULL) free(peticion[1]);
 
+    }
+}
+
+/*
+	Nombre: hiloServidor
+	Descripción: Se encarga de llamar el hilo del servidor para así esperar
+					las peticiones de un único cliente asignado.
+	Parámetros:	- arg: Apuntador a un usuario para cumplir sus requerimientos
+						en la llamada a un hilo.
+*/
+void *hiloServidor(void *arg) {
+    infoUsr *usr = (infoUsr *) arg;
+    pthread_t id = (*usr).id;
+    crearUsuario(usr);
+    char* buffer;
+    char** sep; 
+    int ok = 0;
+
+    /* Espera por el input del cliente.*/
+    while (1){
+        leerSocket((*usr).fd,  &buffer);
+        if(buffer == NULL) continue;
+        sep = separar(buffer);
+        free(buffer);
+        ejecutar_peticion((*usr).posarray,sep);
+        if(!strcmp(sep[0],"fue")) break;
+        free(sep[0]);
+        free(sep);
+    }
+
+    free(sep[0]);
+    free(sep);
+    pthread_cancel(id);
+    if(ok != 0) {
+        perror("Error, no se pudo cancelar el hilo.");
+        exit(1);
     }
 }
 
@@ -771,5 +838,3 @@ int main(int argc, char *argv[]) {
         }
     } 
 }
-
-
