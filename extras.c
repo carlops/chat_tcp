@@ -75,7 +75,7 @@ void escribirSocket(int s,char* msj){
 		perror("Error, no se pudo escribir en el socket.\n");
 		exit(4);
 	}
-	free(tamMsj);
+	//free(tamMsj);
 }
 
 
@@ -159,29 +159,27 @@ char **separar (char *comando){
 	}
 
 	int cont = 0;
-	char *elem;
-	elem = strtok (comando," ");
+	char *elem= (char *) malloc(sizeof(char)*10);
+    char *elem2= (char *) malloc(sizeof(char)*strlen(comando));
+    sscanf(comando,"%[^ \n]%*[ \n]%s",elem,elem2);
+	elem2 = strtok (comando+strlen(elem)+1,"\n");
 	comandoSep[0] = (char *) malloc(sizeof(char)*strlen(elem));
 	if (comandoSep[0] == NULL) {
 		perror("Error, solicitud de memoria denegada.\n");
 		exit(11); 
 	}
 	strcpy(comandoSep[0],elem);
-	while( elem != NULL ) {
-      	elem = strtok(NULL, " ");
-      	if (elem == NULL){
-      		return comandoSep;
-
-      	} else {
-      		comandoSep[1] = (char *) malloc(sizeof(char)*strlen(elem));
-			if (comandoSep[1] == NULL) {
-				perror("Error, solicitud de memoria denegada.\n");
-				exit(12);
-			}
-			strcpy(comandoSep[1],elem);
-			return comandoSep;
-		}
-   }
+    if (elem2 == NULL){
+        return comandoSep;
+    }else{
+        comandoSep[1] = (char *) malloc(sizeof(char)*strlen(elem));
+        if (comandoSep[1] == NULL) {
+            perror("Error, solicitud de memoria denegada.\n");
+            exit(12);
+        }
+        strcpy(comandoSep[1],elem2);
+        return comandoSep;
+    }	
 }
 
 /*
