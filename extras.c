@@ -187,70 +187,63 @@ char **separar (char *comando){
 	return comandoSep;
 }
 
-/**
-Metodo: error_handler
-Descripcion: este metodo proporciona los diversos mensajes de error que 
-             pueden producirse durante la ejecucion del programa
-@param numerror es el entero que representa el codigo del error ocurrido
-@returns un string, es el mensaje que indica cual fue el error que ocurrio
+/*
+	Nombre: error_handler
+	Descripción: Se encarga de decirnos los posibes errores que se producen
+					durante la ejecución del programa.
+	Parámetros: - error: Entero que representa el código del error.
+	Retorno: String que contiene el mensaje con el error ocurrido.
 */
-char *error_handler(int numerror){
-
-	char *mensaje = (char *) calloc(sizeof(char), 100);
-	if(mensaje == NULL){ 
+char *error_handler(int error){
+	char *msj = (char *) calloc(sizeof(char), 100);
+	if(msj == NULL){ 
 		perror("Error, solicitud de memoria denegada.\n");
 		exit(1);
 	}
 
-	switch (numerror) {
-
-	case 0:
-	    sprintf(mensaje,"servidor@servidor: Comando no encontrado.");
-	    break;
-	case 1:
-	    sprintf(mensaje,"servidor@servidor: La sala ya existe.");
-	    break;
-	case 2:
-	   sprintf(mensaje,"servidor@servidor: La sala no existe.");
-	   break;
-	case 3:
-	   sprintf(mensaje,"servidor@servidor: Ya esta suscrito a esta sala.");
-	   break;
-	case 4:
-	   sprintf(mensaje,"servidor@servidor: No puede eliminar la sala por defecto.");
-	   break;
-	case 5:
-	   sprintf(mensaje,"servidor@servidor: Parametros incompletos para este comando.");
-	   break;
-	case 6:
-	   sprintf(mensaje,"servidor@servidor: Su nombre de usuario ya existe.\n");
-	   break;
-
-
+	switch (error) {
+		case 0:
+		    sprintf(msj,"servidor@servidor: Comando inexistente.\n");
+		    break;
+		case 1:
+		    sprintf(msj,"servidor@servidor: La sala ya existe.\n");
+		    break;
+		case 2:
+		   sprintf(msj,"servidor@servidor: La sala no existe.\n");
+		   break;
+		case 3:
+		   sprintf(msj,"servidor@servidor: Ya esta suscrito a esta sala.\n");
+		   break;
+		case 4:
+		   sprintf(msj,"servidor@servidor: No puede eliminar la sala por defecto.\n");
+		   break;
+		case 5:
+		   sprintf(msj,"servidor@servidor: Parámetros incompletos del comando.\n");
+		   break;
+		case 6:
+		   sprintf(msj,"servidor@servidor: Nombre de usuario ya existente.\n");
+		   break;
 	}
-
-	return mensaje;
-
+	return msj;
 }
 
 
-/**
-Metodo: incluir_verificacion
-Descripcion: Escribe un mensaje en el socket de un usuario determinado
-@param estado es un entero que puede ser 0 o 1, si el mensaje será el último 
-              en ser transmitido representando el fin del programa, o si todo
-              continúa en perfecto estado respectivamente. 
-@param mensaje es el arreglo de strings que representa el mensaje a ser
-               transmitido.
+/*
+	Nombre: incluir_verificacion
+	Descripción: Se encarga de escribir un mensaje en el socket del Cliente para
+					indicarle que si es el último mensaje a transmitir (0) o
+					aún falta (1).
+	Parámetros:	- continuar: Entero que representa si aún falta por enviar
+							mensajes o es el útlimo.
+				-msj: Arreglo de String que representa el mensaje a ser enviado.
 */
-void incluir_verificacion(int estado, char** mensaje){
-    
-    char* buffer = (char *) calloc(sizeof(char), strlen(*mensaje));
-    if(buffer==NULL){
+void incluir_verificacion(int continuar, char** msj){
+    char* msjNuevo = (char *) calloc(sizeof(char), strlen(*msj));
+    if (msjNuevo == NULL){
     	perror("Error, solicitud de memoria denegada.\n");
     	error(1);
     }
-    sprintf(buffer," %d %s ", estado, *mensaje);
-    free(*mensaje);
-    *mensaje= buffer;
+    sprintf(msjNuevo," %d %s ", continuar, *msj);
+    free(*msj);
+    *msj = msjNuevo;
 }

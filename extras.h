@@ -71,6 +71,23 @@ extern int verificar(char** msj);
 extern char **separar (char *comando);
 
 
-extern char *error_handler(int numerror);
+/*
+    Nombre: error_handler
+    Descripción: Se encarga de decirnos los posibes errores que se producen
+                    durante la ejecución del programa.
+    Parámetros: - error: Entero que representa el código del error.
+    Retorno: String que contiene el mensaje con el error ocurrido.
+*/
+extern char *error_handler(int error);
 
-extern void incluir_verificacion(int estado, char** mensaje);
+
+/*
+    Nombre: incluir_verificacion
+    Descripción: Se encarga de escribir un mensaje en el socket del Cliente para
+                    indicarle que si es el último mensaje a transmitir (0) o
+                    aún falta (1).
+    Parámetros: - continuar: Entero que representa si aún falta por enviar
+                            mensajes o es el útlimo.
+                -msj: Arreglo de String que representa el mensaje a ser enviado.
+*/
+extern void incluir_verificacion(int continuar, char** msj);
