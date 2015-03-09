@@ -525,7 +525,6 @@ de un cliente en el servidor.
 comando "fue"
 */
 void salir(int posusr){
-
     pthread_mutex_lock(&mutexusr);
 
     int k=0, tam=0, borrado=0, ok;
@@ -653,11 +652,9 @@ void ejecutar_peticion(int pos, char **peticion){
         eliminar_sala(peticion[1], pos);
 
     } else if(!strcmp(peticion[0],"salir")){
-
         salir(pos);
 
     } else {
-
         char *error_encontrado;
         error_encontrado = error_handler(0);
         incluir_verificacion(1,&error_encontrado);        
