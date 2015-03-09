@@ -20,7 +20,7 @@
  *
  */
 
-// HOLA GABY =)
+
 
 /* LIBRERIAS */
 #include <stdio.h>
@@ -53,12 +53,12 @@ typedef struct Usuario infoUsr;
 
 /* VARIABLES */
 /*
-   - totalUsr: 	Cantidad de usuarios.
+   - totalUsr: 		Cantidad de usuarios.
    - totalSalas:	Cantidad de salas.
    - losUsuarios:	Arreglo de usuarios.
-   - salas:		Arreglo de salas.
+   - salas:			Arreglo de salas.
    - tamMaxSala:	Número máximo de salas.
-   - tamMaxUsr:	Número máximo de ususarios.
+   - tamMaxUsr:		Número máximo de ususarios.
    */
 int totalUsr, totalSalas, tamMaxSala, tamMaxUsr;
 infoUsr **losUsuarios;
@@ -664,7 +664,7 @@ int main(int argc, char *argv[]) {
     }
 
     /*
-       - s: 			Socket de conexión del Servidor.
+       - s: 		Socket de conexión del Servidor.
        - local:		Dirección local del Servidor.
        - cliente:	Direccción del Cliente.
    	*/
