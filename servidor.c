@@ -59,7 +59,7 @@ typedef struct Usuario infoUsr;
    - salas:			Arreglo de salas.
    - tamMaxSala:	Número máximo de salas.
    - tamMaxUsr:		Número máximo de ususarios.
-   */
+*/
 int totalUsr, totalSalas, tamMaxSala, tamMaxUsr;
 infoUsr **losUsuarios;
 char **salas;

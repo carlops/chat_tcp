@@ -58,7 +58,7 @@ void salidaForzada(){
 	Descripción: Se encarga de llamar el hilo de un usuario y así esperar los 
 					mensajes destinados a ese usuario.
 	Parámetros:	- arg: Cast para cumplir con los requerimientos de un hilo.
- */
+*/
 void *hiloUsuario(void *arg){
 	char *msj;
 	int *i = (int *) arg;
@@ -229,7 +229,7 @@ int main(int argc, char *argv[]) {
 
 	/* Creación de hilo para el usuario.
 	 	Este hilo es para escuchar los mensajes dirigidos a este usuario.
-	 */
+	*/
 	if (pthread_create(&idthread,NULL,hiloUsuario, (void *) &s)){
 		perror("Error, en la creación del hilo en usuario.\n");
 		exit(7);
@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
 	 	Estos comandos son enviados al servidor invocando la función 
 	 	escribirSocket.
 	 	Se finaliza el ciclo cuando el usuario escribe el comando 'salir'
-	 */
+	*/
 	char *comando, **nombreComando;
 	while (ok){
 		comando = (char *) malloc(sizeof(char)*200);
