@@ -114,10 +114,10 @@ int main(int argc, char *argv[]) {
 	struct in_addr IPDir;
 
 	/* Creación del socket.
-	   El dominio es AF_INET, que representa IPv4.
-	   El tipo es SOCK_STREAM, que indica el servicio fiable orientado a la 
-	   conexión.
-	   El protocolo es TCP, que se indica con 0.
+	   	El dominio es AF_INET, que representa IPv4.
+	   	El tipo es SOCK_STREAM, que indica el servicio fiable orientado a la 
+	   	conexión.
+	   	El protocolo es TCP, que se indica con 0.
 	*/
 	s = socket(AF_INET,SOCK_STREAM,0);
 	if (s < 0) {
@@ -126,12 +126,12 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Asignación de la dirección local al socket.
-	   Se usa AF_INET para indicar la version IPv4.
-	   En el caso del Cliente, el número de puerto local es suministrado con 
-	   la bandera '-l', este parámetro es opcional. 
-	   En el caso de que no sea suministrado, podemos dejar que lo elija el 
-	   sistema, dandole el valor cero. 
-	   La dirección IP local se obtiene con INADDR_ANY.
+	   	Se usa AF_INET para indicar la version IPv4.
+	   	En el caso del Cliente, el número de puerto local es suministrado con 
+	   	la bandera '-l', este parámetro es opcional. 
+	   	En el caso de que no sea suministrado, podemos dejar que lo elija el 
+	   	sistema, dandole el valor cero. 
+	   	La dirección IP local se obtiene con INADDR_ANY.
 	*/
 	local.sin_family = AF_INET;
 	if (puerto_local)
@@ -141,12 +141,12 @@ int main(int argc, char *argv[]) {
 	local.sin_addr.s_addr = htonl(INADDR_ANY);
 
 	/* Asignación de la dirección al socket creado.
-	   No es necesario ejecutar el bind() en el Cliente cuando no es 
-	   suministrado el puerto local. Solo es necesario cuando te lo dan, ya
-	   que si se intenta hacer directamente connect(), sin haber realizado 
-	   previamente bind(), el sistema asignará automaticamente una dirección 
-	   local elegida por él. 
-	   Pero sin importar el caso, siempre se ejecutará.
+	   	No es necesario ejecutar el bind() en el Cliente cuando no es 
+	   	suministrado el puerto local. Solo es necesario cuando te lo dan, ya
+	   	que si se intenta hacer directamente connect(), sin haber realizado 
+	   	previamente bind(), el sistema asignará automaticamente una dirección 
+	   	local elegida por él. 
+	   	Pero sin importar el caso, siempre se ejecutará.
 	*/
 	if (bind(s, (struct sockaddr *) &local, sizeof local) < 0) {
 		perror("Error creando el bind en el Cliente.\n");
@@ -154,11 +154,11 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* Iniciando la conexión.
-	   Se necesita la dirección IP del Servidor y se obtiene mediante a una
-	   llamada a gethosbyname() o con gethostbyaddr() según sea el caso.
-	   Se usa AF_INET para indicar la versión IPv4.
-	   Se copia el host en el struct del Servidor.
-	   Se indica el puerto por donde se escuchará al Servidor.
+	   	Se necesita la dirección IP del Servidor y se obtiene mediante a una
+	   	llamada a gethosbyname() o con gethostbyaddr() según sea el caso.
+	   	Se usa AF_INET para indicar la versión IPv4.
+	   	Se copia el host en el struct del Servidor.
+	   	Se indica el puerto por donde se escuchará al Servidor.
 	*/
 	if (inet_aton(host,&IPDir))
 		servidor = gethostbyaddr((char *) &IPDir, sizeof(IPDir), AF_INET);

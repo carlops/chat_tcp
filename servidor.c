@@ -71,9 +71,9 @@ pthread_mutex_t mutexusr  = PTHREAD_MUTEX_INITIALIZER;
 /* METODOS Y FUNCIONES */
 
 /*
-Nombre: obtenerFechaHora
-Descripción: Se encarga de buscar la fecha y hora actual.
-Retorna: String con la fecha y hora.
+	Nombre: obtenerFechaHora
+	Descripción: Se encarga de buscar la fecha y hora actual.
+	Retorna: String con la fecha y hora.
 */
 char *obtenerFechaHora(){
     char *tiempo = (char *) malloc(sizeof(char)*25);
@@ -90,11 +90,11 @@ char *obtenerFechaHora(){
 }
 
 /*
-Nombre: crearUsuario
-Descripción: Se enccarga de incializar todo lo que este relacionado con
-el usuario cuando éste entra en la sala de chat e indica
-el momento en que el usuario es aceptado.
-Parámetros:	- usr: Usuario que desea entrar en la sala de chat.
+	Nombre: crearUsuario
+	Descripción: Se enccarga de incializar todo lo que este relacionado con
+					el usuario cuando éste entra en la sala de chat e indica
+					el momento en que el usuario es aceptado.
+	Parámetros:	- usr: Usuario que desea entrar en la sala de chat.
 */
 void crearUsuario(infoUsr *usr) {
 
@@ -175,11 +175,11 @@ void crearUsuario(infoUsr *usr) {
 
 
 /*
-Nombre: hiloServidor
-Descripción: Se encarga de llamar el hilo del servidor para así esperar
-las peticiones de un único cliente asignado.
-Parámetros:	- arg: Apuntador a un usuario para cumplir sus requerimientos
-en la llamada a un hilo.
+	Nombre: hiloServidor
+	Descripción: Se encarga de llamar el hilo del servidor para así esperar
+					las peticiones de un único cliente asignado.
+	Parámetros:	- arg: Apuntador a un usuario para cumplir sus requerimientos
+						en la llamada a un hilo.
 */
 void *hiloServidor(void *arg) {
     infoUsr *usr = (infoUsr *) arg;
@@ -642,10 +642,10 @@ void ejecutar_peticion(int pos, char **peticion){
 int main(int argc, char *argv[]) {
 
     /* Obtención de parámetros.
-       Se obtiene los parámetros por consola y se almacena el puerto del 
-       Servidor y el nombre y dirección absoluta o relativa de archivo de
-       texto que realiza operaciones de bitácora.
-       */
+       	Se obtiene los parámetros por consola y se almacena el puerto del 
+       	Servidor y el nombre y dirección absoluta o relativa de archivo de
+       	texto que realiza operaciones de bitácora.
+   	*/
     char *puerto = obtenerParametro("-l",argv,argc);
     char *bitacora = obtenerParametro("-b",argv,argc);
 
@@ -667,17 +667,17 @@ int main(int argc, char *argv[]) {
        - s: 			Socket de conexión del Servidor.
        - local:		Dirección local del Servidor.
        - cliente:	Direccción del Cliente.
-       */
+   	*/
     int s;
     struct sockaddr_in local;
     struct sockaddr_in cliente;
 
     /* Creación del socket.
-       El dominio es AF_INET, que representa IPv4.
-       El tipo es SOCK_STREAM, que indica el servicio fiable orientado a la 
-       conexión.
-       El protocolo es TCP, que se indica con 0.
-       */
+       	El dominio es AF_INET, que representa IPv4.
+       	El tipo es SOCK_STREAM, que indica el servicio fiable orientado a la 
+       	conexión.
+       	El protocolo es TCP, que se indica con 0.
+   	*/
     s = socket(AF_INET,SOCK_STREAM,0);	
     if (s < 0){
         perror("Error creando el socket del Servidor.\n");
@@ -688,7 +688,7 @@ int main(int argc, char *argv[]) {
        Se usa AF_INET para indicar la version IPv4.
        La dirección IP local se obtiene con INADDR_ANY.
        Y se le asigna el puerto local.
-       */
+   	*/
     bzero(&local,sizeof(local));
     local.sin_family = AF_INET;
     local.sin_addr.s_addr = htonl(INADDR_ANY); 
@@ -702,7 +702,7 @@ int main(int argc, char *argv[]) {
 
     /* Comienza a escuchar esperando peticiones del Cliente.
        Puede escuchar hasta un máximo de 1024.
-       */
+   	*/
     if ((listen(s,1024)) < 0){
         perror("Error escuchando el socket.\n");
         exit(5);	
@@ -710,7 +710,7 @@ int main(int argc, char *argv[]) {
 
     /* Se obtiene la fecha y hora.
        Y se indica tanto en la bitácora como en la pantalla del Servidor.
-       */
+   	*/
     char *tiempo = obtenerFechaHora();
     fprintf(fd,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
     printf("%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
@@ -741,14 +741,14 @@ int main(int argc, char *argv[]) {
        - clienteTam: 	Tamaño de la dirección del cliente.
        - nuevoS:		Nuevo Socket.
        - usr:			Usuario actual.
-       */
+   	*/
 
     int clienteTam, nuevoS;
 
     /* Ciclo infinito esperando las peticiones del cliente.
        Se van creando los sockets con las peticiones y se va informando
        también en la bitácora.
-       */
+    */
     while(42) {
         clienteTam = sizeof(cliente);
         nuevoS = accept(s,(struct sockaddr *) &cliente, &clienteTam);
