@@ -167,24 +167,21 @@ char **separar (char *comando){
 		exit(11); 
 	}
 	strcpy(comandoSep[0],elem);
-	comandoSep[1] = NULL;
-	elem = strtok (comando+4,"\n");
-	if (elem == NULL) return comandoSep;
-	while (elem[cont]==' ') cont++;
-	char *elem2 = &elem[cont];
-	while (elem[cont] != 0) cont++;
-	cont--;
-	while (elem[cont] == ' ') {
-		elem[cont]= 0;
-		cont--;
-	}
-	comandoSep[1] = (char *) malloc(sizeof(char)*strlen(elem2));
-	if (comandoSep[1] == NULL) {
-		perror("Error, solicitud de memoria denegada.\n");
-		exit(12);
-	}
-	strcpy(comandoSep[1], elem2);
-	return comandoSep;
+	while( elem != NULL ) {
+      	elem = strtok(NULL, " ");
+      	if (elem == NULL){
+      		return comandoSep;
+
+      	} else {
+      		comandoSep[1] = (char *) malloc(sizeof(char)*strlen(elem));
+			if (comandoSep[1] == NULL) {
+				perror("Error, solicitud de memoria denegada.\n");
+				exit(12);
+			}
+			strcpy(comandoSep[1],elem);
+			return comandoSep;
+		}
+   }
 }
 
 /*

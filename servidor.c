@@ -99,7 +99,6 @@ char *obtenerFechaHora(){
 	Parámetros:	- usr: Usuario que desea entrar en la sala de chat.
 */
 void crearUsuario(infoUsr *usr) {
-
     pthread_mutex_lock(&mutexusr);
     char *buffer, *error_encontrado;
     int  tam = 0, encontrado = 0, i = 0, ok;
@@ -520,7 +519,7 @@ void enviar_mensaje(int posusr, char *mensaje){
 
 /**
 Metodo: salir
-Descripcion: Satisface la ejecucion del comando "fue". Culmina la participacion
+Descripcion: Satisface la ejecucion del comando "salir". Culmina la participacion
 de un cliente en el servidor.
 @param posusr posicion en el arreglo de usuarios de quien solicito la ejecucion del
 comando "fue"
@@ -691,10 +690,11 @@ void *hiloServidor(void *arg) {
         sep = separar(buffer);
         free(buffer);
         ejecutar_peticion((*usr).posarray,sep);
-        if(!strcmp(sep[0],"fue")) break;
+        if(!strcmp(sep[0],"salir")) break;
         free(sep[0]);
         free(sep);
     }
+
 
     free(sep[0]);
     free(sep);
@@ -716,12 +716,13 @@ int main(int argc, char *argv[]) {
     char *puerto = obtenerParametro("-l",argv,argc);
     char *bitacora = obtenerParametro("-b",argv,argc);
 
-    if ((argc!=5)||!bitacora||!puerto)
-        perror("Parámetros inválidos.\n");
-    printf("Ingrese: scs_svr -l <puerto-servidor(local)> -b ");
-    printf("<archivo_bitácora> \n");
-    exit(1);
 
+    if ((argc!=5)||!bitacora||!puerto){
+        perror("Parámetros inválidos.\n");
+        printf("Ingrese: scs_svr -l <puerto-servidor(local)> -b ");
+        printf("<archivo_bitácora> \n");
+        exit(1);
+    }
     /* Se abre el archivo de la bitácora. */
     FILE *fd;
     fd = fopen(bitacora,"a");
@@ -763,7 +764,7 @@ int main(int argc, char *argv[]) {
 
     /* Asignación de la dirección al socket creado. */
     if ((bind(s, (struct sockaddr *) &local, sizeof(local))) < 0){
-        perror("Error creando el bind el Servidor.\n");
+        perror("Error creando el bind del Servidor.\n");
         exit(4);
     }
 
