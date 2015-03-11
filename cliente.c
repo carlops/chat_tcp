@@ -7,7 +7,7 @@
  *	Descripción:	Este módulo contiene todos los procedimientos relacionados 
  * 					al Cliente en la conexión a través de sockets.
  *
- *	Compilar con: make cliente
+ *	Compilar con: make
  *
  *	Correr: scs_cli -d <IP-servidor> -p <puerto-servidor> [-l <puerto_local>]
  *				(Lo que se encuentra entre [] es opcional)

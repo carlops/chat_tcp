@@ -7,7 +7,7 @@
  *	Descripción:	Este módulo contiene todos los procedimientos relacionados 
  * 					al Servidor en la conexión a través de sockets.
  *
- *	Compilar con: make servidor
+ *	Compilar con: make
  *
  *	Correr: scs_svr -l <puerto-servidor(local)> -b <archivo_bitácora>
  *
