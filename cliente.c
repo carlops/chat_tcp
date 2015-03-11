@@ -248,7 +248,6 @@ int main(int argc, char *argv[]) {
 			exit(8);
 		}
 		sleep(1);
-		printf("comando@comando~: "); 
 		scanf(" %[^\n]",comando);
 		if (comando == NULL) continue;
 		escribirSocket(s,comando);
