@@ -7,7 +7,7 @@
  *	Descripción:	Este módulo contiene todos los procedimientos relacionados 
  * 					al Servidor en la conexión a través de sockets.
  *
- *	Compilar con: make servidor
+ *	Compilar con: make
  *
  *	Correr: scs_svr -l <puerto-servidor(local)> -b <archivo_bitácora>
  *
@@ -36,7 +36,7 @@
 
 
 /* CONSTANTES */
-#define TIMEFORMAT "%d/%m/%y-%I:%M:%S : "
+#define TIMEFORMAT "%d/%m/%y-%I:%M:%S"
 #define MAXTAM 10
 
 
@@ -157,7 +157,7 @@ void crearUsuario(infoUsr *usr) {
 
     } else {
         losUsuarios = (infoUsr **) malloc(sizeof(infoUsr *)*
-                (MAXTAM+tamMaxUsr));
+                //(MAXTAM+tamMaxUsr));
         tamMaxUsr += MAXTAM;
         losUsuarios[totalUsr] = usr;
         usr->posarray = totalUsr++;
@@ -312,7 +312,7 @@ void entrarSala(int posusr, char* sala){
         (*losUsuarios[posusr]).salas = (char **) malloc(sizeof(char *)*(MAXTAM+(*losUsuarios[posusr]).tamMaxSala));
 
         (*losUsuarios[posusr]).tamMaxSala += MAXTAM;
-        (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++] = sala;
+        (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++]  = sala;
     }
 
     pthread_mutex_unlock(&mutexusr);
@@ -473,8 +473,10 @@ void enviarMjs(int posusr, char *mensaje){
                         perror("Error, solicitud de memoria denegada,\n");
                         exit(19);
                     }
-                    sprintf(buffer,"%s@%s: %s",(*losUsuarios[posusr]).nombre,
-                            (*losUsuarios[posusr]).salas[j], mensaje);
+                    char *tiempo = obtenerFechaHora();
+                    sprintf(buffer,"%s -> %s %s: %s",
+                        (*losUsuarios[posusr]).salas[j], tiempo,
+                        (*losUsuarios[posusr]).nombre,mensaje);
                     agregrarVerificacion(1,&buffer);
                     escribirSocket((*losUsuarios[i]).fd, buffer);
                     free(buffer);
@@ -577,7 +579,7 @@ void mostrarUsuarios(int posusr){
 
     while (i < totalUsr){
         buffer = (char *)malloc(sizeof(char)*strlen(buffer) +
-                strlen((*losUsuarios[i]).nombre));
+                //strlen((*losUsuarios[i]).nombre));
         sprintf(buffer,"%s\n%s",buffer,(*losUsuarios[i]).nombre);
         i++;
     }
@@ -782,8 +784,8 @@ int main(int argc, char *argv[]) {
         Y se indica tanto en la bitácora como en la pantalla del Servidor.
    	*/
     char *tiempo = obtenerFechaHora();
-    fprintf(fdBitacora,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
-    printf("%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
+    fprintf(fdBitacora,"%s : Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
+    printf("%s : Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
 
     /* Se inicializan los usuarios y las salas.*/
     totalUsr = 0;
@@ -827,8 +829,8 @@ int main(int argc, char *argv[]) {
             exit(8);
         }
         tiempo = obtenerFechaHora();
-        fprintf(fdBitacora,"%sNuevo usuario conectado al servidor\n",tiempo);
-        printf("%sNuevo usuario conectado al servidor\n",tiempo);
+        fprintf(fdBitacora,"%s : Nuevo usuario conectado al servidor\n",tiempo);
+        printf("%s : Nuevo usuario conectado al servidor\n",tiempo);
         infoUsr *usr = (infoUsr *) calloc(sizeof(infoUsr),1);
         if (usr == NULL){
             perror("Error, solicitud de memoria denegada.\n");
