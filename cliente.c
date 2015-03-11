@@ -256,6 +256,7 @@ int main(int argc, char *argv[]) {
 		ok = strcmp(nombreComando[0],"salir");
 		free(comando);
 		free(nombreComando[0]);
+		if (nombreComando[1] != NULL) free(nombreComando[1]);
 		free(nombreComando);
 	}
 

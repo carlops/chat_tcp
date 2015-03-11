@@ -160,10 +160,19 @@ char **separar (char *comando){
 
 	int cont = 0;
 	char *elem= (char *) malloc(sizeof(char)*10);
+	if (elem == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(11);
+	}
     char *elem2= (char *) malloc(sizeof(char)*strlen(comando));
+    if (elem2 == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(12);
+	}
     sscanf(comando,"%[^ \n]%*[ \n]%s",elem,elem2);
 	elem2 = strtok (comando+strlen(elem)+1,"\n");
 	comandoSep[0] = (char *) malloc(sizeof(char)*strlen(elem));
+	comandoSep[1] = NULL;
 	if (comandoSep[0] == NULL) {
 		perror("Error, solicitud de memoria denegada.\n");
 		exit(11); 
@@ -172,28 +181,30 @@ char **separar (char *comando){
     if (elem2 == NULL){
         return comandoSep;
     }else{
-        comandoSep[1] = (char *) malloc(sizeof(char)*strlen(elem));
+    	int tam = strlen(comando)-strlen(elem)+1;
+        comandoSep[1] = (char *) malloc(sizeof(char)*tam);
         if (comandoSep[1] == NULL) {
             perror("Error, solicitud de memoria denegada.\n");
             exit(12);
         }
         strcpy(comandoSep[1],elem2);
+        comandoSep[1][tam]='\0';
         return comandoSep;
     }	
 }
 
 /*
-	Nombre: error_handler
+	Nombre: esError
 	Descripción: Se encarga de decirnos los posibes errores que se producen
 					durante la ejecución del programa.
 	Parámetros: - error: Entero que representa el código del error.
 	Retorno: String que contiene el mensaje con el error ocurrido.
 */
-char *error_handler(int error){
+char *esError(int error){
 	char *msj = (char *) calloc(sizeof(char), 100);
 	if(msj == NULL){ 
 		perror("Error, solicitud de memoria denegada.\n");
-		exit(1);
+		exit(13);
 	}
 
 	switch (error) {
@@ -224,7 +235,7 @@ char *error_handler(int error){
 
 
 /*
-	Nombre: incluir_verificacion
+	Nombre: agregrarVerificacion
 	Descripción: Se encarga de escribir un mensaje en el socket del Cliente para
 					indicarle que si es el último mensaje a transmitir (0) o
 					aún falta (1).
@@ -232,11 +243,11 @@ char *error_handler(int error){
 							mensajes o es el útlimo.
 				-msj: Arreglo de String que representa el mensaje a ser enviado.
 */
-void incluir_verificacion(int continuar, char** msj){
+void agregrarVerificacion(int continuar, char** msj){
     char* msjNuevo = (char *) calloc(sizeof(char), strlen(*msj));
     if (msjNuevo == NULL){
     	perror("Error, solicitud de memoria denegada.\n");
-    	error(1);
+    	error(14);
     }
     sprintf(msjNuevo," %d %s ", continuar, *msj);
     free(*msj);
