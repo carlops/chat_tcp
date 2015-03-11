@@ -36,7 +36,7 @@
 
 
 /* CONSTANTES */
-#define TIMEFORMAT "%d/%m/%y-%I:%M:%S : "
+#define TIMEFORMAT "%d/%m/%y-%I:%M:%S"
 #define MAXTAM 10
 
 
@@ -155,8 +155,8 @@ void crearUsuario(infoUsr *usr) {
         usr->posarray = totalUsr++;
 
     } else {
-        losUsuarios = (infoUsr **) realloc(losUsuarios,sizeof(infoUsr *)*
-                (MAXTAM+tamMaxUsr));
+        //losUsuarios = (infoUsr **) realloc(losUsuarios,sizeof(infoUsr *)*
+                //(MAXTAM+tamMaxUsr));
         tamMaxUsr += MAXTAM;
         losUsuarios[totalUsr] = usr;
         usr->posarray = totalUsr++;
@@ -234,7 +234,7 @@ void crearSala(char *sala, int posusr){
         salas[totalSalas++] = sala;
 
     }  else  {
-        salas = (char **) realloc(salas,sizeof(char *)*(MAXTAM+tamMaxSala));
+        //salas = (char **) realloc(salas,sizeof(char *)*(MAXTAM+tamMaxSala));
         tamMaxSala += MAXTAM;
         salas[totalSalas++] = sala;
     }    
@@ -308,8 +308,8 @@ void entrarSala(int posusr, char* sala){
         (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++] = sala;
 
     }  else  {
-        (*losUsuarios[posusr]).salas = (char **) realloc((*losUsuarios[posusr]).salas,
-                sizeof(char *)*(MAXTAM+(*losUsuarios[posusr]).tamMaxSala));
+        //(*losUsuarios[posusr]).salas = (char **) realloc((*losUsuarios[posusr]).salas,
+          //      sizeof(char *)*(MAXTAM+(*losUsuarios[posusr]).tamMaxSala));
 
         (*losUsuarios[posusr]).tamMaxSala += MAXTAM;
         (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++] = sala;
@@ -473,8 +473,10 @@ void enviarMjs(int posusr, char *mensaje){
                         perror("Error, solicitud de memoria denegada,\n");
                         exit(19);
                     }
-                    sprintf(buffer,"%s@%s: %s",(*losUsuarios[posusr]).nombre,
-                            (*losUsuarios[posusr]).salas[j], mensaje);
+                    char *tiempo = obtenerFechaHora();
+                    sprintf(buffer,"%s -> %s %s: %s",
+                        (*losUsuarios[posusr]).salas[j], tiempo,
+                        (*losUsuarios[posusr]).nombre,mensaje);
                     agregrarVerificacion(1,&buffer);
                     escribirSocket((*losUsuarios[i]).fd, buffer);
                     free(buffer);
@@ -548,7 +550,7 @@ void mostrarSalas(int posusr){
     }
 
     while (i < totalSalas){
-        buffer = (char *) realloc(buffer, strlen(buffer)+strlen(salas[i]));
+        //buffer = (char *) realloc(buffer, strlen(buffer)+strlen(salas[i]));
         sprintf(buffer,"%s\n%s",buffer,salas[i]);
         i++;
     }
@@ -576,8 +578,8 @@ void mostrarUsuarios(int posusr){
     }
 
     while (i < totalUsr){
-        buffer = (char *)realloc(buffer, strlen(buffer) +
-                strlen((*losUsuarios[i]).nombre));
+        //buffer = (char *)realloc(buffer, strlen(buffer) +
+                //strlen((*losUsuarios[i]).nombre));
         sprintf(buffer,"%s\n%s",buffer,(*losUsuarios[i]).nombre);
         i++;
     }
@@ -782,8 +784,8 @@ int main(int argc, char *argv[]) {
         Y se indica tanto en la bitácora como en la pantalla del Servidor.
    	*/
     char *tiempo = obtenerFechaHora();
-    fprintf(fd,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
-    printf("%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
+    fprintf(fd,"%s : Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
+    printf("%s : Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
 
     /* Se inicializan los usuarios y las salas.*/
     totalUsr = 0;
@@ -827,8 +829,8 @@ int main(int argc, char *argv[]) {
             exit(8);
         }
         tiempo = obtenerFechaHora();
-        fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
-        printf("%sNuevo usuario conectado al servidor\n",tiempo);
+        fprintf(fd,"%s : Nuevo usuario conectado al servidor\n",tiempo);
+        printf("%s : Nuevo usuario conectado al servidor\n",tiempo);
         infoUsr *usr = (infoUsr *) calloc(sizeof(infoUsr),1);
         if (usr == NULL){
             perror("Error, solicitud de memoria denegada.\n");
