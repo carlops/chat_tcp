@@ -156,7 +156,7 @@ void crearUsuario(infoUsr *usr) {
         usr->posarray = totalUsr++;
 
     } else {
-        losUsuarios = (infoUsr **) malloc(sizeof(infoUsr *)*
+        //losUsuarios = (infoUsr **) malloc(sizeof(infoUsr *)*
                 //(MAXTAM+tamMaxUsr));
         tamMaxUsr += MAXTAM;
         losUsuarios[totalUsr] = usr;
@@ -578,7 +578,7 @@ void mostrarUsuarios(int posusr){
     }
 
     while (i < totalUsr){
-        buffer = (char *)malloc(sizeof(char)*strlen(buffer) +
+        //buffer = (char *)malloc(sizeof(char)*strlen(buffer) +
                 //strlen((*losUsuarios[i]).nombre));
         sprintf(buffer,"%s\n%s",buffer,(*losUsuarios[i]).nombre);
         i++;
