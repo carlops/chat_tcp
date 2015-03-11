@@ -3,27 +3,19 @@
 CFLAGS	= -g
 CHFLAGS	= -pthread 
 CC	= gcc
-OBJSer	= servidor.c extras.c
-OBJCli	= cliente.c extras.c
-OBJS	= servidor.c cliente.c extras.c
+OBJSer	= servidor.c extras.o
+OBJCli	= cliente.c extras.o
 
-servidor: 
-	
-		$(CC) $(CFLAGS) $(CHFLAGS) -o scs_svr $(OBJSer)
+all: servidor cliente
+
+extras.o: extras.c extras.h
+	$(CC) $(CFLAGS) -c extras.c
+
+servidor: servidor.c extras.o
+	$(CC) $(CFLAGS) $(OBJSer) $(CHFLAGS) -o scs_svr 
 
 cliente: 
-
-		$(CC) $(CFLAGS) $(CHFLAGS) -o scs_cli $(OBJCli)
-
-all: 
-		
-		$(CC) $(CFLAGS) $(CHFLAGS) -o $(OBJS)
-
-cleanser:
-	-@rm -f *.o scs_svr
-
-cleancli:
-	-@rm -f *.o scs_cli
+	$(CC) $(CFLAGS) $(OBJCli) $(CHFLAGS) -o scs_cli 
 
 clean:
 	-@rm -f *.o scs_* 
