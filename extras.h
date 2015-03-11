@@ -49,6 +49,7 @@ extern void escribirSocketS(int s,char* msj, FILE *fd);
 */
 extern void leerSocket(int s, char** msj);
 
+extern void leerSocketS(int s,char** msj, FILE *fd);
 
 /*  Nombre: verificar
     Descripción: Se encarga de tomar el mensaje leido del socket del Cliente y

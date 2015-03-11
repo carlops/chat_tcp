@@ -146,7 +146,36 @@ void leerSocket(int s,char** msj){
 	}
 }
 
+void leerSocketS(int s,char** msj, FILE *fd){
+	*msj = NULL;
+	int tam, ok;
+	char *tamMsj = (char *) malloc(sizeof(char)*5);
+	if (tamMsj == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(5);
+	}
+	ok = read(s, tamMsj, 4);
+	if (ok < 0){
+		perror("Error, no se pudo leer del socket.\n");
+		exit(6);
+	}
+	sscanf(tamMsj,"%d",&tam);
+	free(tamMsj);
+	if (tam == 0) return;
 
+	*msj = (char *) malloc(sizeof(char)* tam);		
+	if (*msj == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(7);
+	}
+
+    fprintf(fd,"%s\n",*msj); /* Esribiendo en la bitacora */
+	ok = read(s, *msj, tam);
+	if (ok < 0){
+		perror("Error, no se pudo leer del socket.\n");
+		exit(8);
+	}
+}
 /*	Nombre: verificar
 	Descripción: Se encarga de tomar el mensaje leido del socket del Cliente y
 					verificar si es el mensaje de culminación del programa o no.

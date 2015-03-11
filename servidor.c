@@ -104,7 +104,7 @@ void crearUsuario(infoUsr *usr) {
     pthread_mutex_lock(&mutexusr);
     char *buffer, *error_encontrado;
     int  tam = 0, encontrado = 0, i = 0, ok;
-    leerSocket(usr->fd, &buffer);
+    leerSocketS(usr->fd, &buffer,fdBitacora);
 
     while ((i < totalUsr) && (!encontrado)){
         encontrado = !strcmp(buffer,(*losUsuarios[i]).nombre);
@@ -652,7 +652,7 @@ void *hiloServidor(void *arg) {
 
     /* Espera por el input del cliente.*/
     while (1){
-        leerSocket((*usr).fd,  &buffer);
+        leerSocketS((*usr).fd,  &buffer,fdBitacora);
         if(buffer == NULL) continue;
         sep = separar(buffer);
         realizarPeticion((*usr).posarray,sep);
