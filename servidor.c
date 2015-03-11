@@ -117,10 +117,10 @@ void crearUsuario(infoUsr *usr) {
             perror("Error, solicitud de memoria denegada.\n");
             exit(1);
         }
-        escribirSocket(usr->fd,error_encontrado);
+        escribirSocketS(usr->fd,error_encontrado,fdBitacora);
         //free(error_encontrado); 
         error_encontrado = esError(6);
-        escribirSocket(usr->fd,error_encontrado);
+        escribirSocketS(usr->fd,error_encontrado,fdBitacora);
         free(error_encontrado);
         ok = close(usr->fd);
         if (ok < 0){
@@ -135,7 +135,7 @@ void crearUsuario(infoUsr *usr) {
         }
     }  
 
-    escribirSocket(usr->fd,"1");
+    escribirSocketS(usr->fd,"1",fdBitacora);
     usr->nombre = buffer;
     usr->salas = (char **) malloc(sizeof(char *));
     if (usr->salas == NULL){
@@ -170,7 +170,7 @@ void crearUsuario(infoUsr *usr) {
     }
     sprintf(aviso,"Su solicitud ha sido aceptada, ha ingresado a la sala '%s' por defecto\n",salas[0]);
     agregrarVerificacion(1,&aviso);
-    escribirSocket(usr->fd,aviso);
+    escribirSocketS(usr->fd,aviso,fdBitacora);
     //free(aviso);
     pthread_mutex_unlock(&mutexusr);
 }
@@ -211,7 +211,7 @@ void crearSala(char *sala, int posusr){
     if (sala == NULL){
         error_encontrado = esError(5);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         pthread_mutex_unlock(&mutexsala);
         return;
     }
@@ -225,7 +225,7 @@ void crearSala(char *sala, int posusr){
     if (encontrado){
         error_encontrado = esError(1);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         free(sala);
         pthread_mutex_unlock(&mutexsala);
         return;
@@ -262,7 +262,7 @@ void entrarSala(int posusr, char* sala){
     if (sala == NULL){
         error_encontrado = esError(5);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala);
         return;
@@ -277,7 +277,7 @@ void entrarSala(int posusr, char* sala){
     if (!encontrado){
         error_encontrado = esError(2);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala);
@@ -296,7 +296,7 @@ void entrarSala(int posusr, char* sala){
         char *error_encontrado;
         error_encontrado = esError(3);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala);
@@ -339,7 +339,7 @@ void elimSala(char *sala, int posusr){
     if (sala == NULL){
         error_encontrado = esError(5);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala); 
         return;
@@ -349,7 +349,7 @@ void elimSala(char *sala, int posusr){
     if (!strcmp(sala,salas[0])){
         error_encontrado = esError(4);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala); 
@@ -365,7 +365,7 @@ void elimSala(char *sala, int posusr){
     if (!encontrado){
         error_encontrado = esError(2);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         free(sala);
         pthread_mutex_unlock(&mutexusr);
         pthread_mutex_unlock(&mutexsala); 
@@ -448,7 +448,7 @@ void enviarMjs(int posusr, char *mensaje){
     if (mensaje == NULL){
         error_encontrado = esError(5);
         agregrarVerificacion(1,&error_encontrado);
-        escribirSocket((*losUsuarios[posusr]).fd, error_encontrado);
+        escribirSocketS((*losUsuarios[posusr]).fd, error_encontrado,fdBitacora);
         pthread_mutex_unlock(&mutexusr);
         return;
     }
@@ -478,7 +478,7 @@ void enviarMjs(int posusr, char *mensaje){
                         (*losUsuarios[posusr]).salas[j], tiempo,
                         (*losUsuarios[posusr]).nombre,mensaje);
                     agregrarVerificacion(1,&buffer);
-                    escribirSocket((*losUsuarios[i]).fd, buffer);
+                    escribirSocketS((*losUsuarios[i]).fd, buffer,fdBitacora);
                     free(buffer);
                 }
                 k++;
@@ -513,7 +513,7 @@ void salir(int posusr){
     }
 
     sprintf(tmp," 1 ");
-    escribirSocket((*losUsuarios[posusr]).fd, tmp);
+    escribirSocketS((*losUsuarios[posusr]).fd, tmp,fdBitacora);
     free(tmp);
     ok = close((*losUsuarios[posusr]).fd);
     if (ok == -1){
@@ -556,7 +556,7 @@ void mostrarSalas(int posusr){
     }
 
     agregrarVerificacion(1,&buffer);
-    escribirSocket((*losUsuarios[posusr]).fd,buffer);
+    escribirSocketS((*losUsuarios[posusr]).fd,buffer,fdBitacora);
     free(buffer);
     pthread_mutex_unlock(&mutexsala);
 }
@@ -585,7 +585,7 @@ void mostrarUsuarios(int posusr){
     }
 
     agregrarVerificacion(1, &buffer);
-    escribirSocket((*losUsuarios[posusr]).fd,buffer);
+    escribirSocketS((*losUsuarios[posusr]).fd,buffer,fdBitacora);
     free(buffer);
     pthread_mutex_unlock(&mutexusr);
 }
@@ -629,7 +629,7 @@ void realizarPeticion(int pos, char **peticion){
         char *error_encontrado;
         error_encontrado = esError(0);
         agregrarVerificacion(1,&error_encontrado);        
-        escribirSocket((*losUsuarios[pos]).fd,error_encontrado);
+        escribirSocketS((*losUsuarios[pos]).fd,error_encontrado,fdBitacora);
         if (peticion[1] != NULL) free(peticion[1]);
     }
 }
@@ -683,8 +683,8 @@ void salidaForzada(){
     sprintf(msj2,"0\n");
 
     while (i < totalUsr){
-        escribirSocket((*losUsuarios[i]).fd, msj1);
-        escribirSocket((*losUsuarios[i]).fd, msj2);
+        escribirSocketS((*losUsuarios[i]).fd, msj1,fdBitacora);
+        escribirSocketS((*losUsuarios[i]).fd, msj2,fdBitacora);
         ok = close((*losUsuarios[i]).fd);
         if (ok == -1){
             perror("Error, No se cerró el socket correctamente.\n");

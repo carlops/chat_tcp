@@ -39,6 +39,7 @@ extern char *obtenerParametro(char *flag, char *argv[], int argc);
 */
 extern void escribirSocket(int s, char* msj);
 
+extern void escribirSocketS(int s,char* msj, FILE *fd);
 
 /*  Nombre: leerSocket
     Descripción: Se encarga de leer un mensaje del socket del Cliente.
@@ -92,4 +93,3 @@ extern char *esError(int error);
 */
 extern void agregrarVerificacion(int continuar, char** msj);
 
-extern void escribirSocketS(int s,char* msj, FILE *fd);

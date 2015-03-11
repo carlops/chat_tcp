@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
 			exit(8);
 		}
 		sleep(1);
-		scanf(" %[^\n]",comando);
+		scanf(" %[^\n]\0",comando);
 		if (comando == NULL) continue;
 		escribirSocket(s,comando);
 		nombreComando = separar(comando);

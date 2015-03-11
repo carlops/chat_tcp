@@ -103,7 +103,7 @@ void escribirSocketS(int s,char* msj, FILE *fd){
 		exit(3);
 	}
 
-    fprintf(fd,msj); /* Esribiendo en la bitacora */
+    fprintf(fd,"%s\n",msj); /* Esribiendo en la bitacora */
 	ok = write(s,msj,tam); 
 	if(ok < 0){
 		perror("Error, no se pudo escribir en el socket.\n");
