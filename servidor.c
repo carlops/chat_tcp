@@ -63,6 +63,7 @@ typedef struct Usuario infoUsr;
    - tamMaxUsr:		Número máximo de ususarios.
 */
 int totalUsr, totalSalas, tamMaxSala, tamMaxUsr;
+FILE *fdBitacora;
 infoUsr **losUsuarios;
 char **salas;
 pthread_mutex_t mutexsala  = PTHREAD_MUTEX_INITIALIZER;
@@ -117,7 +118,7 @@ void crearUsuario(infoUsr *usr) {
             exit(1);
         }
         escribirSocket(usr->fd,error_encontrado);
-        free(error_encontrado); 
+        //free(error_encontrado); 
         error_encontrado = esError(6);
         escribirSocket(usr->fd,error_encontrado);
         free(error_encontrado);
@@ -155,7 +156,7 @@ void crearUsuario(infoUsr *usr) {
         usr->posarray = totalUsr++;
 
     } else {
-        losUsuarios = (infoUsr **) realloc(losUsuarios,sizeof(infoUsr *)*
+        losUsuarios = (infoUsr **) malloc(sizeof(infoUsr *)*
                 (MAXTAM+tamMaxUsr));
         tamMaxUsr += MAXTAM;
         losUsuarios[totalUsr] = usr;
@@ -170,7 +171,7 @@ void crearUsuario(infoUsr *usr) {
     sprintf(aviso,"Su solicitud ha sido aceptada, ha ingresado a la sala '%s' por defecto\n",salas[0]);
     agregrarVerificacion(1,&aviso);
     escribirSocket(usr->fd,aviso);
-    free(aviso);
+    //free(aviso);
     pthread_mutex_unlock(&mutexusr);
 }
 
@@ -234,7 +235,7 @@ void crearSala(char *sala, int posusr){
         salas[totalSalas++] = sala;
 
     }  else  {
-        salas = (char **) realloc(salas,sizeof(char *)*(MAXTAM+tamMaxSala));
+        salas = (char **) malloc(sizeof(char *)*(MAXTAM+tamMaxSala));
         tamMaxSala += MAXTAM;
         salas[totalSalas++] = sala;
     }    
@@ -308,8 +309,7 @@ void entrarSala(int posusr, char* sala){
         (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++] = sala;
 
     }  else  {
-        (*losUsuarios[posusr]).salas = (char **) realloc((*losUsuarios[posusr]).salas,
-                sizeof(char *)*(MAXTAM+(*losUsuarios[posusr]).tamMaxSala));
+        (*losUsuarios[posusr]).salas = (char **) malloc(sizeof(char *)*(MAXTAM+(*losUsuarios[posusr]).tamMaxSala));
 
         (*losUsuarios[posusr]).tamMaxSala += MAXTAM;
         (*losUsuarios[posusr]).salas[(*losUsuarios[posusr]).totalSalas++] = sala;
@@ -548,7 +548,7 @@ void mostrarSalas(int posusr){
     }
 
     while (i < totalSalas){
-        buffer = (char *) realloc(buffer, strlen(buffer)+strlen(salas[i]));
+        buffer = (char *) malloc(sizeof(char)*strlen(buffer)+strlen(salas[i]));
         sprintf(buffer,"%s\n%s",buffer,salas[i]);
         i++;
     }
@@ -576,7 +576,7 @@ void mostrarUsuarios(int posusr){
     }
 
     while (i < totalUsr){
-        buffer = (char *)realloc(buffer, strlen(buffer) +
+        buffer = (char *)malloc(sizeof(char)*strlen(buffer) +
                 strlen((*losUsuarios[i]).nombre));
         sprintf(buffer,"%s\n%s",buffer,(*losUsuarios[i]).nombre);
         i++;
@@ -726,9 +726,9 @@ int main(int argc, char *argv[]) {
         exit(1);
     }
     /* Se abre el archivo de la bitácora. */
-    FILE *fd;
-    fd = fopen(bitacora,"a");
-    if (fd == NULL){
+   // FILE *fdBitacora;
+    fdBitacora = fopen(bitacora,"a");
+    if (fdBitacora == NULL){
         perror("Error abriendo la bitácora.\n");
         exit(2);
     }
@@ -782,7 +782,7 @@ int main(int argc, char *argv[]) {
         Y se indica tanto en la bitácora como en la pantalla del Servidor.
    	*/
     char *tiempo = obtenerFechaHora();
-    fprintf(fd,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
+    fprintf(fdBitacora,"%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
     printf("%s Socket abierto en el puerto %s y esperando conexión..\n",tiempo,puerto);
 
     /* Se inicializan los usuarios y las salas.*/
@@ -827,7 +827,7 @@ int main(int argc, char *argv[]) {
             exit(8);
         }
         tiempo = obtenerFechaHora();
-        fprintf(fd,"%sNuevo usuario conectado al servidor\n",tiempo);
+        fprintf(fdBitacora,"%sNuevo usuario conectado al servidor\n",tiempo);
         printf("%sNuevo usuario conectado al servidor\n",tiempo);
         infoUsr *usr = (infoUsr *) calloc(sizeof(infoUsr),1);
         if (usr == NULL){

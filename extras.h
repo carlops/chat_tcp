@@ -91,3 +91,5 @@ extern char *esError(int error);
                 -msj: Arreglo de String que representa el mensaje a ser enviado.
 */
 extern void agregrarVerificacion(int continuar, char** msj);
+
+extern void escribirSocketS(int s,char* msj, FILE *fd);

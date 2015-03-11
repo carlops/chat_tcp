@@ -78,7 +78,39 @@ void escribirSocket(int s,char* msj){
 	//free(tamMsj);
 }
 
+/*
+	Nombre: escribirSocketS
+	Descripción: Se encarga de escribir el tamaño del mensaje y el mensaje en
+					el socket del Cliente.
+					Si el tamaño de mensaje es 0, se toma como finzalización
+					forzada debido al comando ctrl + c.
+	Argumentos:	- s: File descriptor del socket del Cliente.
+				- msj: String que representa el mensaje que se desea enviar.
+                - fd: Representa el file descriptor de la bitacora
+*/
+void escribirSocketS(int s,char* msj, FILE *fd){
+ 	char *tamMsj = (char *) malloc(sizeof(char)*5);
+	if (tamMsj == NULL){
+		perror("Error, solicitud de memoria denegada.\n");
+		exit(2);
+	}
+	int tam = strlen(msj);
+	sprintf(tamMsj,"%d",tam);
+	int ok;
+	ok = write(s,tamMsj,4);
+	if (ok < 0){
+		perror("Error, no se pudo escribir en el socket.\n");
+		exit(3);
+	}
 
+    fprintf(fd,msj); /* Esribiendo en la bitacora */
+	ok = write(s,msj,tam); 
+	if(ok < 0){
+		perror("Error, no se pudo escribir en el socket.\n");
+		exit(4);
+	}
+	//free(tamMsj);
+}
 /*	Nombre: leerSocket
 	Descripción: Se encarga de leer un mensaje del socket del Cliente.
 					Lee primero el tamaño del mensaje y despues el mensaje.
